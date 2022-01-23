@@ -1,0 +1,2 @@
+sortcheck: reflex.cpp:21: non-reflexive comparator at position 0
+Aborted (core dumped)

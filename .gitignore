@@ -1,0 +1,12 @@
+# Binaries
+bin/*
+
+# Vim files
+.*swp
+
+# Tests
+a.out
+test.log
+
+# GDB
+.gdb_history

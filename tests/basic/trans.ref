@@ -1,0 +1,2 @@
+sortcheck: trans.cpp:31: non-transitive comparator at positions 1, 0 and 2
+Aborted (core dumped)

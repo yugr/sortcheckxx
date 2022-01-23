@@ -1,0 +1,2 @@
+sortcheck: symmetry.cpp:21: non-symmetric comparator at positions 1 and 0
+Aborted (core dumped)
