@@ -11,9 +11,14 @@ set -eu
 #set -x
 
 if echo "$0" | grep -q ++; then
-  exe=clang++
+  exe=g++
 else
-  exe=clang
+  exe=gcc
 fi
 
-$exe "$@" -fplugin=$(dirname $0)/../bin/SortChecker.so
+# Why is libtooling interface so useless...
+FILES=$(echo "$@" | grep -o '[^ ]\+\.\(cc\|cpp\|c\)')
+OPTS=$(echo "$@" | sed -e 's/[^ ]\+\.\(cc\|cpp\|c\)\>//g')
+
+$(dirname $0)/../bin/SortChecker $FILES -- $OPTS
+/usr/bin/$exe "$@"

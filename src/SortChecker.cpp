@@ -3,11 +3,13 @@
 // Use of this source code is governed by MIT license that can be
 // found in the LICENSE.txt file.
 
+#include "clang/Tooling/CommonOptionsParser.h"
+#include "clang/Tooling/Tooling.h"
+
 #include "clang/Rewrite/Core/Rewriter.h"
 
 #include "clang/Frontend/CompilerInstance.h"
 #include "clang/Frontend/FrontendAction.h"
-#include "clang/Frontend/FrontendPluginRegistry.h"
 
 #include "clang/AST/RecursiveASTVisitor.h"
 #include "clang/AST/Type.h"
@@ -15,8 +17,12 @@
 #include "llvm/Support/raw_ostream.h"
 
 using namespace clang;
+using namespace clang::driver;
+using namespace clang::tooling;
 
 namespace {
+
+static llvm::cl::OptionCategory ToolingSampleCategory("Tooling Sample");
 
 int verbose = 0;
 
@@ -118,7 +124,7 @@ public:
   }
 };
 
-class Action : public PluginASTAction {
+class Action : public ASTFrontendAction {
 public:
   std::unique_ptr<ASTConsumer> CreateASTConsumer(
     CompilerInstance &CI,
@@ -127,23 +133,15 @@ public:
     return std::make_unique<Consumer>(CI);
   }
 
-  bool ParseArgs(LLVM_ATTRIBUTE_UNUSED const CompilerInstance &CI,
-                 LLVM_ATTRIBUTE_UNUSED const std::vector<std::string> &args) override {
-    return true;
-  }
-
   void PrintHelp(llvm::raw_ostream &ros) {
     ros << "TODO\n";
   }
-
-protected:
-  PluginASTAction::ActionType
-  getActionType() override {
-    return AddBeforeMainAction;
-  }
 };
 
-FrontendPluginRegistry::Add<Action>
-    X("SortChecker", "plugin which instruments code to detect violation of std::sort axioms");
-
 } // anon namespace
+
+int main(int argc, const char **argv) {
+  CommonOptionsParser op(argc, argv, ToolingSampleCategory);
+  ClangTool Tool(op.getCompilations(), op.getSourcePathList());
+  return Tool.run(newFrontendActionFactory<Action>().get());
+}

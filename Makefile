@@ -46,13 +46,13 @@ endif
 
 $(shell mkdir -p bin)
 
-all: bin/SortChecker.so
+all: bin/SortChecker
 
-bin/SortChecker.so: bin/SortChecker.o Makefile
-	$(CXX) $(LDFLAGS) -shared -o $@ $(filter %.o, $^)
+bin/SortChecker: bin/SortChecker.o Makefile
+	$(CXX) $(LDFLAGS) -o $@ $(filter %.o, $^) $(LIBS)
 
 bin/%.o: src/%.cpp Makefile
-	$(CXX) $(CXXFLAGS) $(CPPFLAGS) -fPIC -o $@ -c $<
+	$(CXX) $(CXXFLAGS) $(CPPFLAGS) -o $@ -c $<
 
 check:
 	@tests/runtests.sh
