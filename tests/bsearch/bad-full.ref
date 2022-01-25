@@ -1,0 +1,2 @@
+sortcheck: bad-full.cpp:17: unsorted range at position 1
+Aborted (core dumped)

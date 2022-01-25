@@ -22,10 +22,7 @@ for std in c++98 c++11 c++14 c++17; do
   for test in *.cpp; do
     stem=$(echo $test | sed 's/\.cpp//')
     c++ $test $CXXFLAGS -std=$std
-    if ./a.out > test.log 2>&1; then
-      echo >&2 'Test did not fail as expected'
-      exit 1
-    fi
+    ./a.out > test.log 2>&1 || true
     if ! diff -q $stem.ref test.log; then
       echo >&2 'Test did not produce expected output:'
       diff $stem.ref test.log >&2
