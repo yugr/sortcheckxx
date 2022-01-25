@@ -48,11 +48,16 @@ $(shell mkdir -p bin)
 
 all: bin/SortChecker
 
-bin/SortChecker: bin/SortChecker.o Makefile
+bin/SortChecker: bin/SortChecker.o Makefile bin/FLAGS
 	$(CXX) $(LDFLAGS) -o $@ $(filter %.o, $^) $(LIBS)
 
-bin/%.o: src/%.cpp Makefile
+bin/%.o: src/%.cpp Makefile bin/FLAGS
 	$(CXX) $(CXXFLAGS) $(CPPFLAGS) -o $@ -c $<
+
+bin/FLAGS: FORCE
+	if test x"$(CFLAGS) $(CXXFLAGS) $(LDFLAGS)" != x"$$(cat $@)"; then \
+	  echo "$(CFLAGS) $(CXXFLAGS) $(LDFLAGS)" > $@; \
+	fi
 
 check:
 	@tests/runtests.sh
@@ -60,5 +65,5 @@ check:
 clean:
 	rm -f bin/*
 
-.PHONY: clean all check
+.PHONY: clean all check FORCE
 
