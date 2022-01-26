@@ -8,26 +8,37 @@ axioms.
 
 **It is currently work in progress.**
 
+# How to build
+
 To use, first install dependencies:
 ```
 $ sudo apt install libclang-dev llvm
 ```
 We only support LLVM 10 for now (default on Ubuntu 20.04).
-Then build
+Then build the tool
 ```
 $ make clean all
 ```
 
-For easier integration, you can use compiler wrappers in `scripts/` folders:
-```
-$ PATH=path/to/scripts:$PATH make clean all
-```
-You could also run tool manually:
+# How to use
+
+SortChecker works by instrumenting, i.e. inserting additional checking code,
+into the source file. You can run it manually:
 ```
 $ SortChecker file.cpp -- $CXXFLAGS
 ```
+and then compile via
+```
+$ g++ file.cpp $CXXFLAGS -Ipath/to/sortcheck.h
+```
 
-TODO:
+You could also use compiler wrappers in `scripts/` folder to combine instrumentation and compilation:
+```
+$ PATH=path/to/scripts:$PATH make clean all
+```
+
+# TODO
+
 - syslogging
 - apply to test packages
 - integrate to old sortcheck (?)
