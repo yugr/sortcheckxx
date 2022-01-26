@@ -79,6 +79,11 @@ class Visitor : public RecursiveASTVisitor<Visitor> {
     return QualType();
   }
 
+  bool isBuiltinType(QualType Ty) const {
+    Ty = dropReferences(Ty);
+    return isa<BuiltinType>(Ty);
+  }
+
   QualType dropReferences(QualType Ty) const {
     while (auto *RTy = dyn_cast<ReferenceType>(Ty.getTypePtr())) {
       Ty = RTy->getPointeeType();
@@ -104,6 +109,23 @@ public:
   }
 #endif
 
+  typedef enum {
+    CMP_FUNC_UNKNOWN = 0,
+    CMP_FUNC_SORT,
+    CMP_FUNC_BINARY_SEARCH,
+    // TODO: other APIs from
+    // https://en.cppreference.com/w/cpp/named_req/Compare
+    CMP_FUNC_NUM
+  } CompareFunction;
+
+  CompareFunction getCompareFunction(const std::string &Name) {
+    auto F = llvm::StringSwitch<CompareFunction>(Name)
+                 .Case("std::sort", CMP_FUNC_SORT)
+                 .Case("std::binary_search", CMP_FUNC_BINARY_SEARCH)
+                 .Default(CMP_FUNC_UNKNOWN);
+    return F;
+  }
+
   bool VisitCallExpr(CallExpr *E) {
     auto &SM = Ctx.getSourceManager();
     auto Loc = E->getExprLoc();
@@ -123,32 +145,49 @@ public:
                      << '\n';
       }
 
-      // TODO: other APIs from
-      // https://en.cppreference.com/w/cpp/named_req/Compare
-      // TODO: skip primitive types
-      if (OS.str() == "std::sort" || OS.str() == "std::binary_search") {
+      do {
+        auto CmpFunc = getCompareFunction(OS.str());
+        if (!CmpFunc)
+          break;
+
         if (verbose) {
-          llvm::errs() << "Found " << OS.str() << "() at " << LocStr << ":\n";
+          llvm::errs() << "Found relevant function " << OS.str() << "() at "
+                       << LocStr << ":\n";
           Callee->dump();
         }
-        const char *WrapperName =
-            llvm::StringSwitch<const char *>(OS.str())
-                .Case("std::sort", "sortcheck::sort_checked")
-                .Case("std::binary_search", "sortcheck::binary_search_checked");
-        if (OS.str() == "std::binary_search") {
+
+        static struct {
+          const char *WrapperName;
+          unsigned NumArgs;
+        } CompareFunctionInfo[CMP_FUNC_NUM] = {
+            {nullptr, 0},
+            {"sortcheck::sort_checked", 2},
+            {"sortcheck::binary_search_checked", 3}};
+
+        const char *WrapperName = CompareFunctionInfo[CmpFunc].WrapperName;
+
+        auto IterTy = canonize(E->getArg(0)->getType());
+        auto DerefTy = canonize(getDereferencedType(IterTy));
+
+        if (CmpFunc == CMP_FUNC_BINARY_SEARCH) {
           // Enable additional checks if typeof(*__first) == _Tp
           // TODO: iterators must support random access
-          auto IterTy = canonize(E->getArg(0)->getType());
-          auto DerefTy = canonize(getDereferencedType(IterTy));
           auto ValueTy = canonize(E->getArg(2)->getType());
           if (areTypesCompatible(ValueTy, DerefTy)) {
             WrapperName = "sortcheck::binary_search_checked_full";
           }
         }
+
+        // Do not instrument primitive types
+        const bool HasDefaultCmp =
+            E->getNumArgs() == CompareFunctionInfo[CmpFunc].NumArgs;
+        if (HasDefaultCmp && isBuiltinType(DerefTy))
+          break;
+
         replaceCallee(DRE, WrapperName);
         appendLocationParams(E);
         ChangedFiles.insert(SM.getFileID(DRE->getExprLoc()));
-      }
+      } while (0);
     }
     return true;
   }

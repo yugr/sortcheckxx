@@ -6,20 +6,17 @@
 #include <algorithm>
 #include <vector>
 
-// Use non-default comparison to trigger instrumentation
-struct Compare {
+struct BadCompare {
   bool operator()(int lhs, int rhs) {
-    return lhs < rhs;
+    return lhs != rhs ? lhs < rhs : true;
   }
 };
 
 int main() {
   std::vector<int> v;
-  // Vector is not correctly sorted
-  // but partiality check alone does not detect it.
-  v.push_back(1);
   v.push_back(3);
   v.push_back(2);
-  std::binary_search(v.begin(), v.end(), 0, Compare());
+  v.push_back(1);
+  std::sort(v.begin(), v.end(), BadCompare());
   return 0;
 }
