@@ -1,5 +1,5 @@
 // Copyright 2022 Yury Gribov
-// 
+//
 // Use of this source code is governed by MIT license that can be
 // found in the LICENSE.txt file.
 
@@ -108,7 +108,8 @@ public:
     auto &SM = Ctx.getSourceManager();
     auto Loc = E->getExprLoc();
     if (SM.isInSystemHeader(Loc))
-      return true;;
+      return true;
+    ;
 
     auto *Callee = skipImplicitCasts(E->getCallee());
     if (auto *DRE = dyn_cast<DeclRefExpr>(Callee)) {
@@ -118,19 +119,22 @@ public:
 
       auto LocStr = Loc.printToString(SM);
       if (verbose) {
-        llvm::errs() << "Found call to " << OS.str() << " at " << LocStr << '\n';
+        llvm::errs() << "Found call to " << OS.str() << " at " << LocStr
+                     << '\n';
       }
 
-      // TODO: other APIs from https://en.cppreference.com/w/cpp/named_req/Compare
+      // TODO: other APIs from
+      // https://en.cppreference.com/w/cpp/named_req/Compare
       // TODO: skip primitive types
       if (OS.str() == "std::sort" || OS.str() == "std::binary_search") {
         if (verbose) {
           llvm::errs() << "Found " << OS.str() << "() at " << LocStr << ":\n";
           Callee->dump();
         }
-        const char *WrapperName = llvm::StringSwitch<const char *>(OS.str())
-            .Case("std::sort", "sortcheck::sort_checked")
-            .Case("std::binary_search", "sortcheck::binary_search_checked");
+        const char *WrapperName =
+            llvm::StringSwitch<const char *>(OS.str())
+                .Case("std::sort", "sortcheck::sort_checked")
+                .Case("std::binary_search", "sortcheck::binary_search_checked");
         if (OS.str() == "std::binary_search") {
           // Enable additional checks if typeof(*__first) == _Tp
           // TODO: iterators must support random access
@@ -149,9 +153,7 @@ public:
     return true;
   }
 
-  const std::set<FileID> &getChangedFiles() const {
-    return ChangedFiles;
-  }
+  const std::set<FileID> &getChangedFiles() const { return ChangedFiles; }
 };
 
 class Consumer : public ASTConsumer {
@@ -181,19 +183,17 @@ public:
 
 class Action : public ASTFrontendAction {
 public:
-  std::unique_ptr<ASTConsumer> CreateASTConsumer(
-    CompilerInstance &CI,
-    LLVM_ATTRIBUTE_UNUSED llvm::StringRef InFile) override {
+  std::unique_ptr<ASTConsumer>
+  CreateASTConsumer(CompilerInstance &CI,
+                    LLVM_ATTRIBUTE_UNUSED llvm::StringRef InFile) override {
     CI.getDiagnostics().setClient(new IgnoringDiagConsumer());
     return std::make_unique<Consumer>(CI);
   }
 
-  void PrintHelp(llvm::raw_ostream &ros) {
-    ros << "TODO\n";
-  }
+  void PrintHelp(llvm::raw_ostream &ros) { ros << "TODO\n"; }
 };
 
-} // anon namespace
+} // namespace
 
 int main(int argc, const char **argv) {
   CommonOptionsParser op(argc, argv, ToolingSampleCategory);
