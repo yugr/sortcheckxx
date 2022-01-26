@@ -32,14 +32,9 @@ ifneq (,$(ASAN))
   LDFLAGS += -fsanitize=address
 endif
 ifneq (,$(UBSAN))
-  ifneq (,$(shell $(CXX) --version | grep clang))
-    # Isan is clang-only...
-    CXXFLAGS += -fsanitize=undefined,integer -fno-sanitize-recover=undefined,integer
-    LDFLAGS += -fsanitize=undefined,integer -fno-sanitize-recover=undefined,integer
-  else
-    CXXFLAGS += -fsanitize=undefined -fno-sanitize-recover=undefined
-    LDFLAGS += -fsanitize=undefined -fno-sanitize-recover=undefined
-  endif
+  # Isan finds issues in Clang itself so disable it
+  CXXFLAGS += -fsanitize=undefined -fno-sanitize-recover=undefined
+  LDFLAGS += -fsanitize=undefined -fno-sanitize-recover=undefined
 endif
 
 $(shell mkdir -p bin)
