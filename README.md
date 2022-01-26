@@ -1,3 +1,6 @@
+[![License](http://img.shields.io/:license-MIT-blue.svg)](https://github.com/yugr/sortcheckxx/blob/master/LICENSE.txt)
+[![Build Status](https://github.com/yugr/sortcheckxx/actions/workflows/ci.yml/badge.svg)](https://github.com/yugr/sortcheckxx/actions)
+
 SortChecker++ is an extension of [SortChecker](https://github.com/yugr/sortcheck) tool
 to C++ sorting APIs like `std::sort` or `std::binary_search`.
 It verifies that comparators satisfy the [Strict Weak Ordering](https://medium.com/@shiansu/strict-weak-ordering-and-the-c-stl-f7dcfa4d4e07)
