@@ -1,7 +1,9 @@
 SortChecker++ is an extension of [SortChecker](https://github.com/yugr/sortcheck) tool
 to C++ sorting APIs like `std::sort` or `std::binary_search`.
+It verifies that comparators satisfy the [Strict Weak Ordering](https://medium.com/@shiansu/strict-weak-ordering-and-the-c-stl-f7dcfa4d4e07)
+axioms.
 
-It's currently work in progress.
+**It is currently work in progress.**
 
 To use, first install dependencies:
 ```
@@ -12,7 +14,14 @@ and then build
 $ make clean all
 ```
 
-For easier integration, you can use compiler wrappers in `scripts/` folders.
+For easier integration, you can use compiler wrappers in `scripts/` folders:
+```
+$ PATH=path/to/scripts:$PATH make clean all
+```
+You could also run tool manually:
+```
+$ SortChecker file.cpp -- $CXXFLAGS
+```
 
 TODO:
 - syslogging
