@@ -18,3 +18,4 @@ TODO:
 - syslogging
 - apply to test packages
 - integrate to old sortcheck (?)
+- CI

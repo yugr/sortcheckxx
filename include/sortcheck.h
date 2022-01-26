@@ -16,13 +16,12 @@ namespace sortcheck {
 
 // TODO: can I have generic impl ? Check STL code.
 #if __cplusplus >= 201100L || ! defined __STRICT_ANSI__
-#define SORTCHECK_SUPPORT_COMPARELESS_API 1
-
-#if __cplusplus >= 201100L
-#define SORTCHECK_DECLTYPE(val) decltype((val))
-#else
-#define SORTCHECK_DECLTYPE(val) typeof((val))
-#endif
+# define SORTCHECK_SUPPORT_COMPARELESS_API 1
+# if __cplusplus >= 201100L
+#   define SORTCHECK_DECLTYPE(val) decltype((val))
+# else
+#   define SORTCHECK_DECLTYPE(val) typeof((val))
+# endif
 #endif
 
 // TODO: replace with std:less ?
@@ -188,7 +187,6 @@ inline void sort_checked(_RandomAccessIterator __first,
   std::sort(__first, __last, __comp);
 }
 
-// TODO: can I have generic impl ? Check STL code.
 #ifdef SORTCHECK_SUPPORT_COMPARELESS_API
 template<typename _RandomAccessIterator>
 inline void sort_checked(_RandomAccessIterator __first,
