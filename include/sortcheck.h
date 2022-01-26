@@ -66,11 +66,11 @@ inline void check_range(_RandomAccessIterator __first,
     }
   }
 
-  // Anti-reflexivity
+  // Irreflexivity
   for (size_t i = 0; i < size_t(__last - __first); ++i) {
     if (cmp[i][i]) {
       std::cerr << "sortcheck: " << file << ':' << line << ": "
-                << "non-reflexive comparator at position " << i << '\n';
+                << "irreflexive comparator at position " << i << '\n';
       if (opts.abort_on_error)
         abort();
     }
@@ -134,16 +134,17 @@ inline bool binary_search_checked(_ForwardIterator __first,
 
   // Ordered
   if (__first != __last) {
-    unsigned i = 0, num_changes = 0;
-    _ForwardIterator prev = __first++;
-    for (_ForwardIterator it = __first; it != __last; prev = it++, ++i) {
-      num_changes += (*prev < __val) != (*it < __val);
-      if (num_changes > 1) {
-        std::cerr << file << ':' << line << ": non-monotonous range "
-                  << "in position " << i << '\n';
+    bool is_prev_less = true;
+    unsigned pos = 0;
+    for (_ForwardIterator it = __first; it != __last; ++it, ++pos) {
+      bool is_less = *it < __val;
+      if (is_less && !is_prev_less) {
+        std::cerr << file << ':' << line << ": unsorted range "
+                  << "in position " << pos << '\n';
         if (opts.abort_on_error)
           abort();
       }
+      is_prev_less = is_less;
     }
   }
 
