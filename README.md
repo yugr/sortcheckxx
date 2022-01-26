@@ -9,7 +9,8 @@ To use, first install dependencies:
 ```
 $ sudo apt install libclang-dev llvm
 ```
-and then build
+We only support LLVM 10 for now (default on Ubuntu 20.04).
+Then build
 ```
 $ make clean all
 ```
@@ -27,4 +28,3 @@ TODO:
 - syslogging
 - apply to test packages
 - integrate to old sortcheck (?)
-- CI

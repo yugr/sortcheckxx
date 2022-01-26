@@ -5,8 +5,6 @@
 # Use of this source code is governed by The MIT License (MIT)
 # that can be found in the LICENSE.txt file.
 
-CXX = g++
-
 CXX ?= g++
 LLVM_CONFIG ?= llvm-config
 DESTDIR ?= /usr/local

@@ -1,0 +1,55 @@
+# TODO:
+# - coverage
+# - coverity
+# - valgrind
+
+name: CI
+on:
+  push:
+    paths-ignore:
+    - 'LICENSE.txt'
+    - 'README.md'
+    - '.gitignore'
+  pull_request:
+    paths-ignore:
+    - 'LICENSE.txt'
+    - 'README.md'
+    - '.gitignore'
+jobs:
+  Tests:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-20.04, ubuntu-latest]
+        cxx: [g++, clang++]
+    runs-on: ${{ matrix.os }}
+    env:
+      CXX: ${{ matrix.cxx }}
+    steps:
+    - uses: actions/checkout@v2
+    - name: Install deps
+      run: scripts/install_deps.sh
+    - name: Run tests
+      run: scripts/travis.sh
+  Asan:
+    runs-on: ubuntu-latest
+    env:
+      CXX: g++  # Clang's interceptor runs comparator prior to our interceptor and ruins some tests
+      ASAN: 1
+    steps:
+    - uses: actions/checkout@v2
+    - name: Install deps
+      run: scripts/install_deps.sh
+    - name: Run tests
+      run: scripts/travis.sh
+  UBsan:
+    runs-on: ubuntu-latest
+    env:
+      CXX: clang++
+      UBSAN: 1
+    steps:
+    - uses: actions/checkout@v2
+    - name: Install deps
+      run: scripts/install_deps.sh
+    - name: Run tests
+      run: scripts/travis.sh
