@@ -196,10 +196,8 @@ public:
 };
 
 class Consumer : public ASTConsumer {
-  CompilerInstance &CI;
-
 public:
-  Consumer(CompilerInstance &CI) : CI(CI) {}
+  Consumer(CompilerInstance &) {}
 
   void HandleTranslationUnit(ASTContext &Ctx) override {
     auto &SM = Ctx.getSourceManager();
