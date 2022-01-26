@@ -1,5 +1,4 @@
 # TODO:
-# - Asan
 # - coverage
 # - coverity
 # - valgrind
@@ -32,17 +31,17 @@ jobs:
       run: scripts/install_deps.sh
     - name: Run tests
       run: scripts/travis.sh
-#  Asan:
-#    runs-on: ubuntu-latest
-#    env:
-#      CXX: g++  # Clang's interceptor runs comparator prior to our interceptor and ruins some tests
-#      ASAN: 1
-#    steps:
-#    - uses: actions/checkout@v2
-#    - name: Install deps
-#      run: scripts/install_deps.sh
-#    - name: Run tests
-#      run: scripts/travis.sh
+  Asan:
+    runs-on: ubuntu-latest
+    env:
+      CXX: g++  # Clang's interceptor runs comparator prior to our interceptor and ruins some tests
+      ASAN: 1
+    steps:
+    - uses: actions/checkout@v2
+    - name: Install deps
+      run: scripts/install_deps.sh
+    - name: Run tests
+      run: scripts/travis.sh
   UBsan:
     runs-on: ubuntu-latest
     env:
