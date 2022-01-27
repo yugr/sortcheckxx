@@ -9,8 +9,10 @@
 #include <algorithm>
 #include <functional>
 #include <iostream>
+#include <sstream>
 
 #include <stdlib.h>
+#include <syslog.h>
 
 namespace sortcheck {
 
@@ -35,6 +37,7 @@ struct Compare {
 struct Options {
   bool abort_on_error;
   int verbose;
+  bool slog;
 };
 
 inline const Options &get_options() {
@@ -44,10 +47,22 @@ inline const Options &get_options() {
     // TODO: optionally print to syslog
     const char *verbose = getenv("SORTCHECK_VERBOSE");
     opts.verbose = verbose ? atoi(verbose) : 0;
+    const char *slog = getenv("SORTCHECK_SYSLOG");
+    if ((opts.slog = slog ? atoi(slog) : 0))
+      openlog(0, 0, LOG_USER);
     opts.abort_on_error = true;
     opts_initialized = true;
   }
   return opts;
+}
+
+void report_error(const std::string &msg) {
+  const Options &opts = get_options();
+  if (opts.slog)
+    syslog(LOG_ERR, "%s", msg.c_str());
+  std::cerr << msg << '\n';
+  if (opts.abort_on_error)
+    abort();
 }
 
 template<typename _RandomAccessIterator, typename _Compare>
@@ -55,8 +70,6 @@ inline void check_range(_RandomAccessIterator __first,
                         _RandomAccessIterator __last,
                         _Compare __comp,
                         const char *file, int line) {
-  const Options &opts = get_options();
-
   bool cmp[32u][32u];
   const size_t n = std::min(size_t(__last - __first), sizeof(cmp) / sizeof(cmp[0]));
   for (size_t i = 0; i < n; ++i) {
@@ -68,10 +81,10 @@ inline void check_range(_RandomAccessIterator __first,
   // Irreflexivity
   for (size_t i = 0; i < size_t(__last - __first); ++i) {
     if (cmp[i][i]) {
-      std::cerr << "sortcheck: " << file << ':' << line << ": "
-                << "irreflexive comparator at position " << i << '\n';
-      if (opts.abort_on_error)
-        abort();
+      std::ostringstream os;
+      os << "sortcheck: " << file << ':' << line << ": "
+         << "irreflexive comparator at position " << i;
+      report_error(os.str());
     }
   }
 
@@ -79,11 +92,11 @@ inline void check_range(_RandomAccessIterator __first,
   for (size_t i = 0; i < n; ++i) {
     for (size_t j = 0; j < i; ++j) {
       if (cmp[i][j] != !cmp[j][i]) {
-        std::cerr << "sortcheck: " << file << ':' << line << ": "
-                  << "non-symmetric comparator at positions "
-                  << i << " and " << j << '\n';
-        if (opts.abort_on_error)
-          abort();
+        std::ostringstream os;
+        os << "sortcheck: " << file << ':' << line << ": "
+           << "non-symmetric comparator at positions "
+           << i << " and " << j;
+        report_error(os.str());
       }
     }
   }
@@ -93,11 +106,11 @@ inline void check_range(_RandomAccessIterator __first,
     for (size_t j = 0; j < i; ++j) {
       for (size_t k = 0; k < n; ++k) {
         if (cmp[i][j] && cmp[j][k] && !cmp[i][k]) {
-          std::cerr << "sortcheck: " << file << ':' << line << ": "
-                    << "non-transitive comparator at positions "
-                    << i << ", " << j << " and " << k << '\n';
-          if (opts.abort_on_error)
-            abort();
+          std::ostringstream os;
+          os << "sortcheck: " << file << ':' << line << ": "
+             << "non-transitive comparator at positions "
+             << i << ", " << j << " and " << k;
+          report_error(os.str());
         }
       }
     }
@@ -109,17 +122,15 @@ inline void check_sorted(_ForwardIterator __first,
                          _ForwardIterator __last,
                          _Compare __comp,
                          const char *file, int line) {
-  const Options &opts = get_options();
-
   unsigned pos = 0;
   for (_ForwardIterator cur = __first, prev = cur++;
        cur != __last;
        ++prev, ++cur, ++pos) {
     if (!__comp(*prev, *cur)) {
-      std::cerr << "sortcheck: " << file << ':' << line << ": "
-                << "unsorted range at position " << pos << '\n';
-      if (opts.abort_on_error)
-        abort();
+      std::ostringstream os;
+      os << "sortcheck: " << file << ':' << line << ": "
+         << "unsorted range at position " << pos;
+      report_error(os.str());
     }
   }
 }
@@ -129,8 +140,6 @@ inline bool binary_search_checked(_ForwardIterator __first,
                                   _ForwardIterator __last,
                                   const _Tp &__val, _Compare __comp,
                                   const char *file, int line) {
-  const Options &opts = get_options();
-
   // Ordered
   if (__first != __last) {
     bool is_prev_less = true;
@@ -138,10 +147,10 @@ inline bool binary_search_checked(_ForwardIterator __first,
     for (_ForwardIterator it = __first; it != __last; ++it, ++pos) {
       bool is_less = *it < __val;
       if (is_less && !is_prev_less) {
-        std::cerr << file << ':' << line << ": unsorted range "
-                  << "in position " << pos << '\n';
-        if (opts.abort_on_error)
-          abort();
+        std::ostringstream os;
+        os << file << ':' << line << ": unsorted range "
+           << "in position " << pos;
+        report_error(os.str());
       }
       is_prev_less = is_less;
     }

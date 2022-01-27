@@ -39,6 +39,10 @@ You could also use compiler wrappers in `scripts/` folder to combine instrumenta
 $ PATH=path/to/scripts:$PATH make clean all
 ```
 
+Instrumented program may be controlled with environment variables:
+* `SORTCHECK_VERBOSE` - verbosity
+* `SORTCHECK_SYSLOG` - dump messages to syslog (in addition to stderr)
+
 # TODO
 
 - syslogging
