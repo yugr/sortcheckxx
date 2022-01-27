@@ -53,3 +53,16 @@ jobs:
       run: scripts/install_deps.sh
     - name: Run tests
       run: scripts/travis.sh
+  Coverage:
+    needs: Tests
+    runs-on: ubuntu-latest
+    environment: secrets
+    env:
+      COVERAGE: 1
+      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+    steps:
+    - uses: actions/checkout@v2
+    - name: Install deps
+      run: scripts/install_deps.sh
+    - name: Run tests
+      run: scripts/travis.sh

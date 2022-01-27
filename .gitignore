@@ -10,3 +10,8 @@ test.log
 
 # GDB
 .gdb_history
+
+# Coverage
+*.gcov
+*.gcda
+*.gcno
