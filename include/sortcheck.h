@@ -41,10 +41,10 @@ inline const Options &get_options() {
   static Options opts;
   static bool opts_initialized;
   if (!opts_initialized) {
-    // TODO: parse env variables
     // TODO: optionally print to syslog
+    const char *verbose = getenv("SORTCHECK_VERBOSE");
+    opts.verbose = verbose ? atoi(verbose) : 0;
     opts.abort_on_error = true;
-    opts.verbose = 0;
     opts_initialized = true;
   }
   return opts;

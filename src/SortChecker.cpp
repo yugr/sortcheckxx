@@ -23,9 +23,14 @@ using namespace clang::tooling;
 
 namespace {
 
-static llvm::cl::OptionCategory ToolingSampleCategory("Tooling Sample");
+static llvm::cl::OptionCategory Category("SortChecker");
+static llvm::cl::extrahelp CommonHelp(CommonOptionsParser::HelpMessage);
+static llvm::cl::extrahelp MoreHelp("\n\
+SortChecker instruments input source files by replacing calls to compare-related APIs\n\
+(like std::sort or std::binary_search) with their equivalents that check code for violations\n\
+of Strict Weak Ordering axioms at runtime.\n");
 
-int verbose = 0;
+llvm::cl::opt<bool> Verbose("v", llvm::cl::desc("Turn on verbose output"));
 
 class Visitor : public RecursiveASTVisitor<Visitor> {
   ASTContext &Ctx;
@@ -140,7 +145,7 @@ public:
       DRE->getDecl()->printQualifiedName(OS);
 
       auto LocStr = Loc.printToString(SM);
-      if (verbose) {
+      if (Verbose) {
         llvm::errs() << "Found call to " << OS.str() << " at " << LocStr
                      << '\n';
       }
@@ -150,7 +155,7 @@ public:
         if (!CmpFunc)
           break;
 
-        if (verbose) {
+        if (Verbose) {
           llvm::errs() << "Found relevant function " << OS.str() << "() at "
                        << LocStr << ":\n";
           Callee->dump();
@@ -233,7 +238,7 @@ public:
 } // namespace
 
 int main(int argc, const char **argv) {
-  CommonOptionsParser op(argc, argv, ToolingSampleCategory);
-  ClangTool Tool(op.getCompilations(), op.getSourcePathList());
+  CommonOptionsParser Op(argc, argv, Category);
+  ClangTool Tool(Op.getCompilations(), Op.getSourcePathList());
   return Tool.run(newFrontendActionFactory<Action>().get());
 }
