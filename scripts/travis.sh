@@ -21,5 +21,5 @@ make "$@" check
 # Upload coverage
 if test -n "${COVERAGE:-}"; then
   curl --retry 5 -s https://codecov.io/bash > codecov.bash
-#  bash codecov.bash -Z
+  bash codecov.bash -Z
 fi
