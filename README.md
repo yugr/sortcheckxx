@@ -45,6 +45,5 @@ Instrumented program may be controlled with environment variables:
 
 # TODO
 
-- syslogging
 - apply to test packages
 - integrate to old sortcheck (?)
