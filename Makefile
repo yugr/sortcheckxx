@@ -57,6 +57,7 @@ check:
 
 clean:
 	rm -f bin/*
+	find -name \*.gcov -o -name \*.gcda -o -name \*.gcno | xargs rm -f
 
 .PHONY: clean all check FORCE
 
