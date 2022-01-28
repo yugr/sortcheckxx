@@ -14,7 +14,7 @@ axioms.
 
 To use, first install dependencies:
 ```
-$ sudo apt install libclang-dev llvm
+$ sudo apt install libclang-dev llvm-dev
 ```
 We only support LLVM 10 for now (default on Ubuntu 20.04).
 Then build the tool
