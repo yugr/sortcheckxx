@@ -17,8 +17,8 @@ else
 fi
 
 # Why is libtooling interface so useless...
-FILES=$(echo "$@" | grep -o '[^ ]\+\.\(cc\|cpp\|c\)')
-OPTS=$(echo "$@" | sed -e 's/[^ ]\+\.\(cc\|cpp\|c\)\>//g')
+FILES=$(echo "$@" | grep -o '[^ ]\+\.\(cc\|cpp\|c\|cxx\|C\)\( \|$\)' || true)
+OPTS=$(echo "$@" | sed -e 's/[^ ]\+\.\(cc\|cpp\|c\|cxx\|C\)\( \|$\)//g')
 
-$(dirname $0)/../bin/SortChecker $FILES -- $OPTS
+test -z "$FILES" || $(dirname $0)/../bin/SortChecker $FILES -- $OPTS
 /usr/bin/$exe "$@"
