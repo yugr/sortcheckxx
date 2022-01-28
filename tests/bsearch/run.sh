@@ -7,6 +7,8 @@
 # Use of this source code is governed by The MIT License (MIT)
 # that can be found in the LICENSE.txt file.
 
+# Check bsearch instrumentation.
+
 set -eu
 #set -x
 
@@ -17,6 +19,8 @@ PATH=$ROOT/scripts:$PATH
 INC=$ROOT/include
 
 CXXFLAGS="-I$ROOT/include -Wall -Wextra -Werror -g"
+
+export SORTCHECK_ABORT=0
 
 for std in c++98 c++11 c++14 c++17; do
   for test in *.cpp; do

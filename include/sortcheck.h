@@ -35,22 +35,29 @@ struct Compare {
 };
 
 struct Options {
-  bool abort_on_error;
+  bool abort;
   int verbose;
-  bool slog;
+  bool syslog;
+  int exit_code;
 };
 
 inline const Options &get_options() {
   static Options opts;
   static bool opts_initialized;
   if (!opts_initialized) {
-    // TODO: optionally print to syslog
     const char *verbose = getenv("SORTCHECK_VERBOSE");
     opts.verbose = verbose ? atoi(verbose) : 0;
+
     const char *slog = getenv("SORTCHECK_SYSLOG");
-    if ((opts.slog = slog ? atoi(slog) : 0))
+    if ((opts.syslog = slog ? atoi(slog) : 0))
       openlog(0, 0, LOG_USER);
-    opts.abort_on_error = true;
+
+    const char *abrt = getenv("SORTCHECK_ABORT");
+    opts.abort = abrt ? atoi(abrt) : 1;
+
+    const char *exit_code = getenv("SORTCHECK_EXIT_CODE");
+    opts.exit_code = exit_code ? atoi(exit_code) : 1;
+
     opts_initialized = true;
   }
   return opts;
@@ -58,11 +65,16 @@ inline const Options &get_options() {
 
 void report_error(const std::string &msg) {
   const Options &opts = get_options();
-  if (opts.slog)
+
+  if (opts.syslog)
     syslog(LOG_ERR, "%s", msg.c_str());
   std::cerr << msg << '\n';
-  if (opts.abort_on_error)
+
+  if (opts.abort)
     abort();
+
+  if (opts.exit_code)
+    exit(opts.exit_code);
 }
 
 template<typename _RandomAccessIterator, typename _Compare>

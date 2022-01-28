@@ -42,6 +42,8 @@ $ PATH=path/to/scripts:$PATH make clean all
 Instrumented program may be controlled with environment variables:
 * `SORTCHECK_VERBOSE` - verbosity
 * `SORTCHECK_SYSLOG` - dump messages to syslog (in addition to stderr)
+* `SORTCHECK_ABORT_ON_ERROR` - call abort() on detected error
+* `SORTCHECK_EXIT_CODE` - call exit(CODE) on detected error
 
 # TODO
 

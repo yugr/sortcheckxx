@@ -7,6 +7,8 @@
 # Use of this source code is governed by The MIT License (MIT)
 # that can be found in the LICENSE.txt file.
 
+# Check std::sort instrumentation.
+
 set -eu
 #set -x
 
@@ -18,10 +20,12 @@ INC=$ROOT/include
 
 CXXFLAGS="-I$ROOT/include -Wall -Wextra -Werror -g"
 
-for std in c++98 c++11 c++14 c++17; do
+export SORTCHECK_ABORT=0
+
+for std in gnu++11 c++98 c++11 c++14 c++17; do
   for test in *.cpp; do
     stem=$(echo $test | sed 's/\.cpp//')
-    if test $std = c++17 -a -n "${COVERAGE:-}"; then
+    if test $std = gnu++11 -a -n "${COVERAGE:-}"; then
       CXXFLAGS_EXTRA=--coverage
     else
       CXXFLAGS_EXTRA=
