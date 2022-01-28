@@ -51,7 +51,7 @@ class Visitor : public RecursiveASTVisitor<Visitor> {
     return E;
   }
 
-  void replaceCallee(DeclRefExpr *DRE, const char *Replacement) const {
+  void replaceCallee(DeclRefExpr *DRE, llvm::StringRef Replacement) const {
     SourceRange Range = {DRE->getBeginLoc(), DRE->getEndLoc()};
     RW.ReplaceText(Range, Replacement);
   }
@@ -121,19 +121,31 @@ public:
   }
 #endif
 
-  typedef enum {
+  enum CompareFunction {
     CMP_FUNC_UNKNOWN = 0,
     CMP_FUNC_SORT,
     CMP_FUNC_BINARY_SEARCH,
+    CMP_FUNC_LOWER_BOUND,
     // TODO: other APIs from
     // https://en.cppreference.com/w/cpp/named_req/Compare
     CMP_FUNC_NUM
-  } CompareFunction;
+  };
+
+  LLVM_NODISCARD bool isKindOfBinarySearch(CompareFunction func) const {
+    switch (func) {
+    case CMP_FUNC_BINARY_SEARCH:
+    case CMP_FUNC_LOWER_BOUND:
+      return true;
+    default:
+      return false;
+    }
+  }
 
   CompareFunction getCompareFunction(const std::string &Name) {
     auto F = llvm::StringSwitch<CompareFunction>(Name)
                  .Case("std::sort", CMP_FUNC_SORT)
                  .Case("std::binary_search", CMP_FUNC_BINARY_SEARCH)
+                 .Case("std::lower_bound", CMP_FUNC_LOWER_BOUND)
                  .Default(CMP_FUNC_UNKNOWN);
     return F;
   }
@@ -143,7 +155,6 @@ public:
     auto Loc = E->getExprLoc();
     if (SM.isInSystemHeader(Loc))
       return true;
-    ;
 
     auto *Callee = skipImplicitCasts(E->getCallee());
     if (auto *DRE = dyn_cast<DeclRefExpr>(Callee)) {
@@ -174,19 +185,20 @@ public:
         } CompareFunctionInfo[CMP_FUNC_NUM] = {
             {nullptr, 0},
             {"sortcheck::sort_checked", 2},
-            {"sortcheck::binary_search_checked", 3}};
+            {"sortcheck::binary_search_checked", 3},
+            {"sortcheck::lower_bound_checked", 3}};
 
-        const char *WrapperName = CompareFunctionInfo[CmpFunc].WrapperName;
+        std::string WrapperName = CompareFunctionInfo[CmpFunc].WrapperName;
 
         auto IterTy = canonize(E->getArg(0)->getType());
         auto DerefTy = canonize(getDereferencedType(IterTy));
 
-        if (CmpFunc == CMP_FUNC_BINARY_SEARCH) {
+        if (isKindOfBinarySearch(CmpFunc)) {
           // Enable additional checks if typeof(*__first) == _Tp
           // TODO: iterators must support random access
           auto ValueTy = canonize(E->getArg(2)->getType());
           if (areTypesCompatible(ValueTy, DerefTy)) {
-            WrapperName = "sortcheck::binary_search_checked_full";
+            WrapperName += "_full";
           }
         }
 

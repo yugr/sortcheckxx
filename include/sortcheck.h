@@ -1,5 +1,5 @@
 // Copyright 2022 Yury Gribov
-// 
+//
 // Use of this source code is governed by MIT license that can be
 // found in the LICENSE.txt file.
 
@@ -260,6 +260,44 @@ inline bool binary_search_checked_full(_ForwardIterator __first,
                                        const char *file, int line) {
   Compare<_Tp> compare;
   return binary_search_checked_full(__first, __last, __val, compare, file, line);
+}
+
+template<typename _ForwardIterator, typename _Tp, typename _Compare>
+inline _ForwardIterator lower_bound_checked(_ForwardIterator __first,
+                                            _ForwardIterator __last,
+                                            const _Tp &__val, _Compare __comp,
+                                            const char *file, int line) {
+  check_ordered(__first, __last, __comp, __val, file, line);
+
+  return std::lower_bound(__first, __last, __val, __comp);
+}
+
+template<typename _ForwardIterator, typename _Tp>
+inline _ForwardIterator lower_bound_checked(_ForwardIterator __first,
+                                            _ForwardIterator __last,
+                                            const _Tp &__val,
+                                            const char *file, int line) {
+  Compare<_Tp> compare;
+  return lower_bound_checked(__first, __last, __val, compare, file, line);
+}
+
+template<typename _ForwardIterator, typename _Tp, typename _Compare>
+inline _ForwardIterator lower_bound_checked_full(_ForwardIterator __first,
+                                                 _ForwardIterator __last,
+                                                 const _Tp &__val, _Compare __comp,
+                                                 const char *file, int line) {
+  check_range(__first, __last, __comp, file, line);
+  check_sorted(__first, __last, __comp, file, line);
+  return lower_bound_checked(__first, __last, __val, __comp, file ,line);
+}
+
+template<typename _ForwardIterator, typename _Tp>
+inline _ForwardIterator lower_bound_checked_full(_ForwardIterator __first,
+                                                 _ForwardIterator __last,
+                                                 const _Tp &__val,
+                                                 const char *file, int line) {
+  Compare<_Tp> compare;
+  return lower_bound_checked_full(__first, __last, __val, compare, file, line);
 }
 
 template<typename _RandomAccessIterator, typename _Compare>
