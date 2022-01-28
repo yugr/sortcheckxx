@@ -21,7 +21,12 @@ CXXFLAGS="-I$ROOT/include -Wall -Wextra -Werror -g"
 for std in c++98 c++11 c++14 c++17; do
   for test in *.cpp; do
     stem=$(echo $test | sed 's/\.cpp//')
-    c++ $test $CXXFLAGS -std=$std
+    if test $std = c++17 -a -n "${COVERAGE:-}"; then
+      CXXFLAGS_EXTRA=--coverage
+    else
+      CXXFLAGS_EXTRA=
+    fi
+    c++ $test $CXXFLAGS $CXXFLAGS_EXTRA -std=$std
     ./a.out > test.log 2>&1 || true
     if ! diff -q $stem.ref test.log; then
       echo >&2 'Test did not produce expected output:'
