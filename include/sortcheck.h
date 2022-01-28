@@ -157,7 +157,7 @@ inline bool binary_search_checked(_ForwardIterator __first,
     bool is_prev_less = true;
     unsigned pos = 0;
     for (_ForwardIterator it = __first; it != __last; ++it, ++pos) {
-      bool is_less = *it < __val;
+      bool is_less = comp(*it, __val);
       if (is_less && !is_prev_less) {
         std::ostringstream os;
         os << file << ':' << line << ": unsorted range "
