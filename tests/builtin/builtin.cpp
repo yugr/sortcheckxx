@@ -6,12 +6,6 @@
 #include <algorithm>
 #include <vector>
 
-struct BadCompare {
-  bool operator()(int lhs, int rhs) {
-    return lhs != rhs ? lhs < rhs : true;
-  }
-};
-
 int main() {
   std::vector<int> v;
   v.push_back(3);
