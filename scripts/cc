@@ -16,9 +16,11 @@ else
   exe=gcc
 fi
 
+ROOT=$(dirname $0)/..
+
 # Why is libtooling interface so useless...
 FILES=$(echo "$@" | grep -o '[^ ]\+\.\(cc\|cpp\|c\|cxx\|C\)\( \|$\)' || true)
 OPTS=$(echo "$@" | sed -e 's/[^ ]\+\.\(cc\|cpp\|c\|cxx\|C\)\( \|$\)//g')
 
-test -z "$FILES" || $(dirname $0)/../bin/SortChecker $FILES -- $OPTS
-/usr/bin/$exe "$@"
+test -z "$FILES" || $ROOT/bin/SortChecker $FILES -- $OPTS
+/usr/bin/$exe "$@" -I$ROOT/include

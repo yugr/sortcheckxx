@@ -18,7 +18,7 @@ ROOT=$PWD/../..
 PATH=$ROOT/scripts:$PATH
 INC=$ROOT/include
 
-CXXFLAGS="-I$ROOT/include -Wall -Wextra -Werror -g"
+CXXFLAGS='-Wall -Wextra -Werror -g'
 
 c++ $CXXFLAGS abort.cpp
 if ./a.out > test.log 2>&1; then
