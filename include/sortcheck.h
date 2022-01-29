@@ -63,7 +63,7 @@ inline const Options &get_options() {
   return opts;
 }
 
-void report_error(const std::string &msg) {
+inline void report_error(const std::string &msg) {
   const Options &opts = get_options();
 
   if (opts.syslog)
