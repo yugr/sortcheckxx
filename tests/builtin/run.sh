@@ -16,7 +16,7 @@ cd $(dirname $0)
 
 ROOT=$PWD/../..
 
-$ROOT/bin/SortChecker builtin.cpp
+$ROOT/bin/SortChecker builtin.cpp --
 if grep -q sortcheck builtin.cpp; then
   echo >&2 'Unexpected modifications'
   exit 1
