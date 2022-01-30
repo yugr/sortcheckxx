@@ -1,0 +1,18 @@
+name: Coverity
+on:
+  schedule:
+    # Run on Mondays
+    - cron: '0 5 * * MON'
+jobs:
+  Coverity:
+    runs-on: ubuntu-latest
+    environment: secrets
+    steps:
+    - uses: actions/checkout@v2
+    - name: Install deps
+      run: scripts/install-deps.sh
+    - uses: vapier/coverity-scan-action@v0
+      with:
+        project: yugr%2Fsortcheckxx
+        token: ${{ secrets.COVERITY_SCAN_TOKEN }}
+        email: ${{ secrets.EMAIL }}
