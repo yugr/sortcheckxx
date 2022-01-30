@@ -16,7 +16,7 @@ cd $(dirname $0)
 
 ROOT=$PWD/../..
 
-$ROOT/bin/SortChecker -v example.cpp > test.log 2>&1
+$ROOT/bin/SortChecker -v example.cpp -- > test.log 2>&1
 if ! grep -q 'Found relevant function' test.log; then
   echo >&2 'Missing verbose print'
   exit 1
