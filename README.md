@@ -2,6 +2,7 @@
 [![Build Status](https://github.com/yugr/sortcheckxx/actions/workflows/ci.yml/badge.svg)](https://github.com/yugr/sortcheckxx/actions)
 [![codecov](https://codecov.io/gh/yugr/sortcheckxx/branch/master/graph/badge.svg)](https://codecov.io/gh/yugr/sortcheckxx)
 [![Total alerts](https://img.shields.io/lgtm/alerts/g/yugr/sortcheckxx.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/yugr/sortcheckxx/alerts/)
+[![Coverity Scan](https://scan.coverity.com/projects/yugr-sortcheckxx/badge.svg)](https://scan.coverity.com/projects/yugr-sortcheckxx)
 
 SortChecker++ is an extension of [SortChecker](https://github.com/yugr/sortcheck) tool
 to C++ sorting APIs like `std::sort` or `std::binary_search`.
