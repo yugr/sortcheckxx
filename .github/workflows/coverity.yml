@@ -10,7 +10,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: Install deps
-      run: scripts/install-deps.sh
+      run: scripts/install_deps.sh
     - uses: vapier/coverity-scan-action@v0
       with:
         project: yugr%2Fsortcheckxx
