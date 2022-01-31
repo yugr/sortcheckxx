@@ -13,6 +13,11 @@ CPPFLAGS = $(shell $(LLVM_CONFIG) --cppflags) -isystem $(shell $(LLVM_CONFIG) --
 CXXFLAGS = $(shell $(LLVM_CONFIG) --cxxflags) -std=c++17 -g -Wall -Wextra -Werror
 LDFLAGS = $(shell $(LLVM_CONFIG) --ldflags) -Wl,--warn-common
 
+ifneq (,$(shell $(CXX) --version | grep clang))
+  # LLVM flags on 18.04 are terribly broken
+  CXXFLAGS += -Wno-unused-command-line-argument -Wno-unknown-warning-option
+endif
+
 LLVM_LIBDIR = $(shell $(LLVM_CONFIG) --libdir)
 LIBS = -Wl,--start-group $(shell find $(LLVM_LIBDIR) -name 'libclang[A-Z]*.a') -Wl,--end-group $(shell $(LLVM_CONFIG) --libs --system-libs)
 

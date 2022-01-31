@@ -20,6 +20,8 @@ INC=$ROOT/include
 
 CXXFLAGS='-Wall -Wextra -Werror -g'
 
+ulimit -c 1024
+
 c++ $CXXFLAGS abort.cpp
 if ./a.out > test.log 2>&1; then
   echo >&2 'Test did not fail as expected'

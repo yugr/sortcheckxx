@@ -9,6 +9,8 @@ to C++ sorting APIs like `std::sort` or `std::binary_search`.
 It verifies that comparators satisfy the [Strict Weak Ordering](https://medium.com/@shiansu/strict-weak-ordering-and-the-c-stl-f7dcfa4d4e07)
 axioms.
 
+We tested the tool on LLVM 6.0 (Ubuntu 18.04) and 10.0 (Ubuntu 20.04) for now.
+
 **It is currently work in progress.**
 
 # How to build
@@ -17,7 +19,6 @@ To use, first install dependencies:
 ```
 $ sudo apt install libclang-dev llvm-dev
 ```
-We only support LLVM 10 for now (default on Ubuntu 20.04).
 Then build the tool
 ```
 $ make clean all

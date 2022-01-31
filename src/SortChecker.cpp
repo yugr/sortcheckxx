@@ -13,6 +13,8 @@
 
 #include "clang/AST/RecursiveASTVisitor.h"
 #include "clang/AST/Type.h"
+#include "clang/Basic/Version.inc"
+
 
 #include "llvm/ADT/StringSwitch.h"
 #include "llvm/Support/raw_ostream.h"
@@ -20,6 +22,12 @@
 using namespace clang;
 using namespace clang::driver;
 using namespace clang::tooling;
+
+// Compatibility layer
+#if CLANG_VERSION_MAJOR <= 6
+#define getBeginLoc getLocStart
+#define getEndLoc getLocEnd
+#endif
 
 namespace {
 
@@ -223,7 +231,7 @@ public:
   }
 };
 
-class Action : public ASTFrontendAction {
+class InstrumentingAction : public ASTFrontendAction {
 public:
   std::unique_ptr<ASTConsumer>
   CreateASTConsumer(CompilerInstance &CI,
@@ -240,5 +248,5 @@ public:
 int main(int argc, const char **argv) {
   CommonOptionsParser Op(argc, argv, Category);
   ClangTool Tool(Op.getCompilations(), Op.getSourcePathList());
-  return Tool.run(newFrontendActionFactory<Action>().get());
+  return Tool.run(newFrontendActionFactory<InstrumentingAction>().get());
 }
