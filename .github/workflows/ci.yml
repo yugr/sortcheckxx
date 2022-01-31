@@ -1,6 +1,3 @@
-# TODO:
-# - valgrind
-
 name: CI
 on:
   push:
