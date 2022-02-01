@@ -39,7 +39,14 @@ struct Options {
   int verbose;
   bool syslog;
   int exit_code;
+  unsigned long checks;
 };
+
+#define SORTCHECK_CHECK_REFLEXIVITY (1 << 0)
+#define SORTCHECK_CHECK_SYMMETRY (1 << 1)
+#define SORTCHECK_CHECK_TRANSITIVITY (1 << 2)
+#define SORTCHECK_CHECK_SORTED (1 << 3)
+#define SORTCHECK_CHECK_ORDERED (1 << 4)
 
 inline const Options &get_options() {
   static Options opts;
@@ -58,14 +65,19 @@ inline const Options &get_options() {
     const char *exit_code = getenv("SORTCHECK_EXIT_CODE");
     opts.exit_code = exit_code ? atoi(exit_code) : 1;
 
+    if (const char *checks = getenv("SORTCHECK_CHECKS")) {
+      const bool is_binary = checks && checks[0] == '0' && (checks[1] == 'b' || checks[1] == 'B');
+      opts.checks = strtoul(checks, NULL, is_binary ? 2 : 0);
+    } else {
+      opts.checks = ~0ul;
+    }
+
     opts_initialized = true;
   }
   return opts;
 }
 
-inline void report_error(const std::string &msg) {
-  const Options &opts = get_options();
-
+inline void report_error(const std::string &msg, const Options &opts) {
   if (opts.syslog)
     syslog(LOG_ERR, "%s", msg.c_str());
   std::cerr << msg << '\n';
@@ -82,6 +94,8 @@ inline void check_range(_RandomAccessIterator __first,
                         _RandomAccessIterator __last,
                         _Compare __comp,
                         const char *file, int line) {
+  const Options &opts = get_options();
+
   bool cmp[32u][32u];
   const size_t n = std::min(size_t(__last - __first), sizeof(cmp) / sizeof(cmp[0]));
   for (size_t i = 0; i < n; ++i) {
@@ -90,39 +104,42 @@ inline void check_range(_RandomAccessIterator __first,
     }
   }
 
-  // Irreflexivity
-  for (size_t i = 0; i < size_t(__last - __first); ++i) {
-    if (cmp[i][i]) {
-      std::ostringstream os;
-      os << "sortcheck: " << file << ':' << line << ": "
-         << "irreflexive comparator at position " << i;
-      report_error(os.str());
-    }
-  }
-
-  // Anti-symmetry
-  for (size_t i = 0; i < n; ++i) {
-    for (size_t j = 0; j < i; ++j) {
-      if (cmp[i][j] != !cmp[j][i]) {
+  if (opts.checks & SORTCHECK_CHECK_REFLEXIVITY) {
+    for (size_t i = 0; i < size_t(__last - __first); ++i) {
+      if (cmp[i][i]) {
         std::ostringstream os;
         os << "sortcheck: " << file << ':' << line << ": "
-           << "non-symmetric comparator at positions "
-           << i << " and " << j;
-        report_error(os.str());
+           << "irreflexive comparator at position " << i;
+        report_error(os.str(), opts);
       }
     }
   }
 
-  // Transitivity
-  for (size_t i = 0; i < n; ++i) {
-    for (size_t j = 0; j < i; ++j) {
-      for (size_t k = 0; k < n; ++k) {
-        if (cmp[i][j] && cmp[j][k] && !cmp[i][k]) {
+  if (opts.checks & SORTCHECK_CHECK_SYMMETRY) {
+    for (size_t i = 0; i < n; ++i) {
+      for (size_t j = 0; j < i; ++j) {
+        if (cmp[i][j] != !cmp[j][i]) {
           std::ostringstream os;
           os << "sortcheck: " << file << ':' << line << ": "
-             << "non-transitive comparator at positions "
-             << i << ", " << j << " and " << k;
-          report_error(os.str());
+             << "non-symmetric comparator at positions "
+             << i << " and " << j;
+          report_error(os.str(), opts);
+        }
+      }
+    }
+  }
+
+  if (opts.checks & SORTCHECK_CHECK_TRANSITIVITY) {
+    for (size_t i = 0; i < n; ++i) {
+      for (size_t j = 0; j < i; ++j) {
+        for (size_t k = 0; k < n; ++k) {
+          if (cmp[i][j] && cmp[j][k] && !cmp[i][k]) {
+            std::ostringstream os;
+            os << "sortcheck: " << file << ':' << line << ": "
+               << "non-transitive comparator at positions "
+               << i << ", " << j << " and " << k;
+            report_error(os.str(), opts);
+          }
         }
       }
     }
@@ -134,6 +151,10 @@ inline void check_sorted(_ForwardIterator __first,
                          _ForwardIterator __last,
                          _Compare __comp,
                          const char *file, int line) {
+  const Options &opts = get_options();
+  if (!(opts.checks & SORTCHECK_CHECK_SORTED))
+    return;
+
   unsigned pos = 0;
   for (_ForwardIterator cur = __first, prev = cur++;
        cur != __last;
@@ -142,7 +163,7 @@ inline void check_sorted(_ForwardIterator __first,
       std::ostringstream os;
       os << "sortcheck: " << file << ':' << line << ": "
          << "unsorted range at position " << pos;
-      report_error(os.str());
+      report_error(os.str(), opts);
     }
   }
 }
@@ -152,8 +173,8 @@ inline bool binary_search_checked(_ForwardIterator __first,
                                   _ForwardIterator __last,
                                   const _Tp &__val, _Compare __comp,
                                   const char *file, int line) {
-  // Ordered
-  if (__first != __last) {
+  const Options &opts = get_options();
+  if ((opts.checks & SORTCHECK_CHECK_ORDERED) && __first != __last) {
     bool is_prev_less = true;
     unsigned pos = 0;
     for (_ForwardIterator it = __first; it != __last; ++it, ++pos) {
@@ -162,7 +183,7 @@ inline bool binary_search_checked(_ForwardIterator __first,
         std::ostringstream os;
         os << file << ':' << line << ": unsorted range "
            << "in position " << pos;
-        report_error(os.str());
+        report_error(os.str(), opts);
       }
       is_prev_less = is_less;
     }
