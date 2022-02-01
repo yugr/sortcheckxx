@@ -15,7 +15,6 @@
 #include "clang/AST/Type.h"
 #include "clang/Basic/Version.inc"
 
-
 #include "llvm/ADT/StringSwitch.h"
 #include "llvm/Support/raw_ostream.h"
 
