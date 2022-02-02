@@ -7,7 +7,9 @@
 #include <vector>
 
 struct BadCompare {
-  bool operator()(int, int) {
+  bool operator()(int lhs, int rhs) {
+    if (lhs != rhs)
+      return true;
     return false;
   }
 };

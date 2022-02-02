@@ -26,3 +26,5 @@ cc example.o
 cc example.cc -c -o example.cc.o
 cc example.cc.o
 ./a.out | grep -q 'Hello world'
+
+echo SUCCESS
