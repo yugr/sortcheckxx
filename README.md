@@ -48,6 +48,10 @@ Instrumented program may be controlled with environment variables:
 * `SORTCHECK_EXIT_CODE` - call `exit(CODE)` on detected error
 * `SORTCHECK_CHECKS` - set which checks are enabled via bitmask
 
+# Interpreting the error messages
+
+tbd
+
 # TODO
 
 - apply to test packages
