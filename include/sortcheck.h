@@ -190,7 +190,7 @@ inline bool binary_search_checked(_ForwardIterator __first,
       bool is_less = __comp(*it, __val);
       if (is_less && !is_prev_less) {
         std::ostringstream os;
-        os << file << ':' << line << ": unsorted range "
+        os << "sortcheck: " << file << ':' << line << ": unsorted range "
            << "at position " << pos;
         report_error(os.str(), opts);
       }
