@@ -46,9 +46,8 @@ struct Options {
 #define SORTCHECK_CHECK_REFLEXIVITY (1 << 0)
 #define SORTCHECK_CHECK_SYMMETRY (1 << 1)
 #define SORTCHECK_CHECK_TRANSITIVITY (1 << 2)
-#define SORTCHECK_CHECK_EQUIVALENCE (1 << 3)
-#define SORTCHECK_CHECK_SORTED (1 << 4)
-#define SORTCHECK_CHECK_ORDERED (1 << 5)
+#define SORTCHECK_CHECK_SORTED (1 << 3)
+#define SORTCHECK_CHECK_ORDERED (1 << 4)
 
 inline const Options &get_options() {
   static Options opts;
@@ -98,25 +97,24 @@ inline void check_range(_RandomAccessIterator __first,
                         const char *file, int line) {
   const Options &opts = get_options();
 
-  const unsigned N = 32u;
-  bool cmp[N][N];
+  signed char cmp[32u][32u];
   const size_t n = std::min(size_t(__last - __first), sizeof(cmp) / sizeof(cmp[0]));
   for (size_t i = 0; i < n; ++i) {
     for (size_t j = 0; j < n; ++j) {
-      cmp[i][j] = __comp(*(__first + i), *(__first + j));
+      cmp[i][j] = __comp(*(__first + i), *(__first + j)) ? 1 : -1;
     }
   }
 
-  bool eq[N][N];
   for (size_t i = 0; i < n; ++i) {
-    for (size_t j = 0; j < n; ++j) {
-      eq[i][j] = !cmp[i][j] && !cmp[j][i];
+    for (size_t j = 0; j <= i; ++j) {
+      if (cmp[i][j] < 0 && cmp[j][i] < 0)
+        cmp[i][j] = cmp[j][i] = 0;
     }
   }
 
   if (opts.checks & SORTCHECK_CHECK_REFLEXIVITY) {
     for (size_t i = 0; i < size_t(__last - __first); ++i) {
-      if (cmp[i][i]) {
+      if (cmp[i][i] != 0) {
         std::ostringstream os;
         os << "sortcheck: " << file << ':' << line << ": "
            << "irreflexive comparator at position " << i;
@@ -128,7 +126,7 @@ inline void check_range(_RandomAccessIterator __first,
   if (opts.checks & SORTCHECK_CHECK_SYMMETRY) {
     for (size_t i = 0; i < n; ++i) {
       for (size_t j = 0; j < i; ++j) {
-        if (!eq[i][j] && cmp[i][j] != !cmp[j][i]) {
+        if (cmp[i][j] != -cmp[j][i]) {
           std::ostringstream os;
           os << "sortcheck: " << file << ':' << line << ": "
              << "non-asymmetric comparator at positions "
@@ -143,26 +141,11 @@ inline void check_range(_RandomAccessIterator __first,
     for (size_t i = 0; i < n; ++i) {
       for (size_t j = 0; j < i; ++j) {
         for (size_t k = 0; k < n; ++k) {
-          if (cmp[i][j] && cmp[j][k] && !cmp[i][k]) {
+          if (cmp[i][j] == cmp[j][k] && cmp[i][k] != cmp[i][j]) {
             std::ostringstream os;
             os << "sortcheck: " << file << ':' << line << ": "
-               << "non-transitive comparator at positions "
-               << i << ", " << j << " and " << k;
-            report_error(os.str(), opts);
-          }
-        }
-      }
-    }
-  }
-
-  if (opts.checks & SORTCHECK_CHECK_EQUIVALENCE) {
-    for (size_t i = 0; i < n; ++i) {
-      for (size_t j = 0; j < i; ++j) {
-        for (size_t k = 0; k < n; ++k) {
-          if (eq[i][j] && eq[j][k] && !eq[i][k]) {
-            std::ostringstream os;
-            os << "sortcheck: " << file << ':' << line << ": "
-               << "comparator is non-transitive equivalent at positions "
+               << "non-transitive " << (cmp[i][j] ? "" : "equivalent ")
+               << "comparator at positions "
                << i << ", " << j << " and " << k;
             report_error(os.str(), opts);
           }

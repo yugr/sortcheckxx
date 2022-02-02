@@ -1,1 +1,1 @@
-sortcheck: symmetry.cpp:21: non-symmetric comparator at positions 1 and 0
+sortcheck: symmetry.cpp:23: non-asymmetric comparator at positions 1 and 0
