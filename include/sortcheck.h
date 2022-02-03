@@ -198,26 +198,35 @@ inline void check_sorted(_ForwardIterator __first,
 }
 
 template<typename _ForwardIterator, typename _Tp, typename _Compare>
+inline void check_ordered(_ForwardIterator __first,
+                          _ForwardIterator __last,
+                          _Compare __comp,
+                          const _Tp &__val,
+                          const char *file, int line) {
+  const Options &opts = get_options();
+  if (!(opts.checks & SORTCHECK_CHECK_ORDERED) || __first == __last)
+    return;
+
+  bool is_prev_less = true;
+  unsigned pos = 0;
+  for (_ForwardIterator it = __first; it != __last; ++it, ++pos) {
+    bool is_less = __comp(*it, __val);
+    if (is_less && !is_prev_less) {
+      std::ostringstream os;
+      os << "sortcheck: " << file << ':' << line << ": unsorted range "
+         << "at position " << pos;
+      report_error(os.str(), opts);
+    }
+    is_prev_less = is_less;
+  }
+}
+
+template<typename _ForwardIterator, typename _Tp, typename _Compare>
 inline bool binary_search_checked(_ForwardIterator __first,
                                   _ForwardIterator __last,
                                   const _Tp &__val, _Compare __comp,
                                   const char *file, int line) {
-  const Options &opts = get_options();
-  if ((opts.checks & SORTCHECK_CHECK_ORDERED) && __first != __last) {
-    bool is_prev_less = true;
-    unsigned pos = 0;
-    for (_ForwardIterator it = __first; it != __last; ++it, ++pos) {
-      bool is_less = __comp(*it, __val);
-      if (is_less && !is_prev_less) {
-        std::ostringstream os;
-        os << "sortcheck: " << file << ':' << line << ": unsorted range "
-           << "at position " << pos;
-        report_error(os.str(), opts);
-      }
-      is_prev_less = is_less;
-    }
-  }
-
+  check_ordered(__first, __last, __comp, __val, file, line);
   return std::binary_search(__first, __last, __val, __comp);
 }
 
