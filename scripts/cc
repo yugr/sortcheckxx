@@ -22,5 +22,5 @@ ROOT=$(dirname $0)/..
 FILES=$(echo "$@" | grep -o '[^ ]\+\.\(cc\|cpp\|c\|cxx\|C\)\( \|$\)' || true)
 OPTS=$(echo "$@" | sed -e 's/[^ ]\+\.\(cc\|cpp\|c\|cxx\|C\)\( \|$\)//g')
 
-test -z "$FILES" || $ROOT/bin/SortChecker $FILES -- $OPTS
+test -z "$FILES" || $ROOT/bin/SortChecker $FILES -- $OPTS -w
 /usr/bin/$exe "$@" -I$ROOT/include
