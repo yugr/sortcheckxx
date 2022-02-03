@@ -16,7 +16,6 @@ cd $(dirname $0)
 
 ROOT=$PWD/../..
 PATH=$ROOT/scripts:$PATH
-INC=$ROOT/include
 
 CXXFLAGS='-Wall -Wextra -Werror -g'
 

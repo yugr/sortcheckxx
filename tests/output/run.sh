@@ -7,7 +7,7 @@
 # Use of this source code is governed by The MIT License (MIT)
 # that can be found in the LICENSE.txt file.
 
-# Check that SORTCHECK_ABORT works.
+# Check that -v works.
 
 set -eu
 #set -x
@@ -18,18 +18,25 @@ ROOT=$PWD/../..
 PATH=$ROOT/scripts:$PATH
 
 CXXFLAGS='-Wall -Wextra -Werror -g'
+if test "${COVERAGE:-}"; then
+  CXXFLAGS="$CXXFLAGS --coverage"
+fi
 
-ulimit -c 1024
+g++ $CXXFLAGS example.cpp
 
-c++ $CXXFLAGS abort.cpp
+export SORTCHECK_OUTPUT=file.txt
+rm -f $SORTCHECK_OUTPUT
+
 if ./a.out > test.log 2>&1; then
   echo >&2 'Test did not fail as expected'
   exit 1
 fi
-if ! diff -q abort.ref test.log; then
+if ! diff -q example.ref $SORTCHECK_OUTPUT; then
   echo >&2 'Test did not produce expected output:'
-  diff abort.ref test.log >&2
+  diff example.ref $SORTCHECK_OUTPUT >&2
   exit 1
 fi
+
+rm -f $SORTCHECK_OUTPUT
 
 echo SUCCESS

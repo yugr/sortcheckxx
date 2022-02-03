@@ -46,6 +46,7 @@ Instrumented program may be controlled with environment variables:
 * `SORTCHECK_SYSLOG` - dump messages to syslog (in addition to stderr)
 * `SORTCHECK_ABORT_ON_ERROR` - call `abort()` on detected error
 * `SORTCHECK_EXIT_CODE` - call `exit(CODE)` on detected error
+* `SORTCHECK_OUTPUT` - write detected errors to file instead of stdout
 * `SORTCHECK_CHECKS` - set which checks are enabled via bitmask
 
 # Interpreting the error messages

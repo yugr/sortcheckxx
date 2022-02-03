@@ -14,6 +14,9 @@
 #include <stdlib.h>
 #include <syslog.h>
 
+#include <unistd.h>
+#include <fcntl.h>
+
 namespace sortcheck {
 
 // TODO: can I have generic impl ? Check STL code.
@@ -39,6 +42,7 @@ struct Options {
   int verbose;
   bool syslog;
   int exit_code;
+  int out;
   unsigned long checks;
 };
 
@@ -73,6 +77,12 @@ inline const Options &get_options() {
       opts.checks = ~0ul;
     }
 
+    if (const char *out = getenv("SORTCHECK_OUTPUT")) {
+      opts.out = open(out, O_WRONLY | O_CREAT | O_APPEND, 0777);
+    } else {
+      opts.out = STDOUT_FILENO;
+    }
+
     opts_initialized = true;
   }
   return opts;
@@ -81,10 +91,16 @@ inline const Options &get_options() {
 inline void report_error(const std::string &msg, const Options &opts) {
   if (opts.syslog)
     syslog(LOG_ERR, "%s", msg.c_str());
-  std::cerr << msg << '\n';
 
-  if (opts.abort)
+  char c = '\n';
+  write(opts.out, msg.c_str(), msg.size());
+  write(opts.out, &c, 1);
+  fsync(opts.out);
+
+  if (opts.abort) {
+    close(opts.out);
     abort();
+  }
 
   if (opts.exit_code)
     exit(opts.exit_code);
