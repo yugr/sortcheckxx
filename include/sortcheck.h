@@ -79,6 +79,10 @@ inline const Options &get_options() {
 
     if (const char *out = getenv("SORTCHECK_OUTPUT")) {
       opts.out = open(out, O_WRONLY | O_CREAT | O_APPEND, 0777);
+      if (opts.out < 0) {
+        std::cerr << "sortcheck: failed to write to " << out << '\n';
+        abort();
+      }
     } else {
       opts.out = STDOUT_FILENO;
     }
