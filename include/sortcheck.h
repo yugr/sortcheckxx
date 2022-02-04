@@ -80,7 +80,7 @@ inline const Options &get_options() {
     if (const char *out = getenv("SORTCHECK_OUTPUT")) {
       opts.out = open(out, O_WRONLY | O_CREAT | O_APPEND, 0777);
       if (opts.out < 0) {
-        std::cerr << "sortcheck: failed to write to " << out << '\n';
+        std::cerr << "sortcheck: failed to open " << out << '\n';
         abort();
       }
     } else {
@@ -97,9 +97,13 @@ inline void report_error(const std::string &msg, const Options &opts) {
     syslog(LOG_ERR, "%s", msg.c_str());
 
   char c = '\n';
-  write(opts.out, msg.c_str(), msg.size());
-  write(opts.out, &c, 1);
-  fsync(opts.out);
+  if (write(opts.out, msg.c_str(), msg.size()) >= 0
+      && write(opts.out, &c, 1) >= 0) {
+    fsync(opts.out);
+  } else {
+    std::cerr << "sortcheck: failed to write to " << opts.out << '\n';
+    abort();
+  }
 
   if (opts.abort) {
     close(opts.out);
