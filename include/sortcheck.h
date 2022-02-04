@@ -271,15 +271,19 @@ inline void sort_checked(_RandomAccessIterator __first,
   std::sort(__first, __last, __comp);
 }
 
-#ifdef SORTCHECK_SUPPORT_COMPARELESS_API
 template<typename _RandomAccessIterator>
 inline void sort_checked(_RandomAccessIterator __first,
                          _RandomAccessIterator __last,
                          const char *file, int line) {
+#ifdef SORTCHECK_SUPPORT_COMPARELESS_API
   Compare<SORTCHECK_DECLTYPE(*__first)> compare;
   sort_checked(__first, __last, compare, file, line);
-}
+#else
+  file = file;
+  line = line;
+  std::sort(__first, __last);
 #endif  // SORTCHECK_SUPPORT_COMPARELESS_API
+}
 
 } // anon namespace
 
