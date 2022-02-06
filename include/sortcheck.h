@@ -19,7 +19,7 @@
 
 namespace sortcheck {
 
-// TODO: can I have generic impl ? Check STL code.
+// TODO: can I have generic impl without code dup?
 #if __cplusplus >= 201100L || ! defined __STRICT_ANSI__
 # define SORTCHECK_SUPPORT_COMPARELESS_API 1
 # if __cplusplus >= 201100L
@@ -29,21 +29,29 @@ namespace sortcheck {
 # endif
 #endif
 
+#define SORTCHECK_UNUSED(x) x = x
+
+#if __cplusplus >= 201100L
+# define SORTCHECK_NOEXCEPT(expr) noexcept(expr)
+#else
+# define SORTCHECK_NOEXCEPT(expr)
+#endif
+
 // TODO: replace with std:less ?
 template<typename A>
-struct Compare1 {
-  bool operator()(const A &lhs, const A &rhs) const {
+struct SingleTypedCompare {
+  bool operator()(const A &lhs, const A &rhs) const SORTCHECK_NOEXCEPT(noexcept(lhs < rhs)) {
     return lhs < rhs;
   }
 };
 
 // TODO: replace with std:less ?
 template<typename A, typename B>
-struct Compare2 {
-  bool operator()(const A &lhs, const B &rhs) const {
+struct DoubleTypedCompare {
+  bool operator()(const A &lhs, const B &rhs) const SORTCHECK_NOEXCEPT(noexcept(lhs < rhs)) {
     return lhs < rhs;
   }
-  bool operator()(const B &lhs, const A &rhs) const {
+  bool operator()(const B &lhs, const A &rhs) const SORTCHECK_NOEXCEPT(noexcept(lhs < rhs)) {
     return lhs < rhs;
   }
 };
@@ -254,11 +262,11 @@ inline bool binary_search_checked(_ForwardIterator __first,
                                   const _Tp &__val,
                                   const char *file, int line) {
 #ifdef SORTCHECK_SUPPORT_COMPARELESS_API
-  Compare2<SORTCHECK_DECLTYPE(*__first), _Tp> compare;
+  DoubleTypedCompare<SORTCHECK_DECLTYPE(*__first), _Tp> compare;
   return binary_search_checked(__first, __last, __val, compare, file, line);
 #else
-  file = file;
-  line = line;
+  SORTCHECK_UNUSED(file);
+  SORTCHECK_UNUSED(line);
   return std::binary_search(__first, __last, __val);
 #endif
 }
@@ -279,11 +287,11 @@ inline bool binary_search_checked_full(_ForwardIterator __first,
                                        const _Tp &__val,
                                        const char *file, int line) {
 #ifdef SORTCHECK_SUPPORT_COMPARELESS_API
-  Compare2<SORTCHECK_DECLTYPE(*__first), _Tp> compare;
+  DoubleTypedCompare<SORTCHECK_DECLTYPE(*__first), _Tp> compare;
   return binary_search_checked_full(__first, __last, __val, compare, file, line);
 #else
-  file = file;
-  line = line;
+  SORTCHECK_UNUSED(file);
+  SORTCHECK_UNUSED(line);
   return std::binary_search(__first, __last, __val);
 #endif
 }
@@ -303,8 +311,14 @@ inline _ForwardIterator lower_bound_checked(_ForwardIterator __first,
                                             _ForwardIterator __last,
                                             const _Tp &__val,
                                             const char *file, int line) {
-  Compare<_Tp> compare;
+#ifdef SORTCHECK_SUPPORT_COMPARELESS_API
+  DoubleTypedCompare<SORTCHECK_DECLTYPE(*__first), _Tp> compare;
   return lower_bound_checked(__first, __last, __val, compare, file, line);
+#else
+  SORTCHECK_UNUSED(file);
+  SORTCHECK_UNUSED(line);
+  return std::lower_bound(__first, __last, __val);
+#endif
 }
 
 template<typename _ForwardIterator, typename _Tp, typename _Compare>
@@ -322,8 +336,14 @@ inline _ForwardIterator lower_bound_checked_full(_ForwardIterator __first,
                                                  _ForwardIterator __last,
                                                  const _Tp &__val,
                                                  const char *file, int line) {
-  Compare<_Tp> compare;
+#ifdef SORTCHECK_SUPPORT_COMPARELESS_API
+  DoubleTypedCompare<SORTCHECK_DECLTYPE(*__first), _Tp> compare;
   return lower_bound_checked_full(__first, __last, __val, compare, file, line);
+#else
+  SORTCHECK_UNUSED(file);
+  SORTCHECK_UNUSED(line);
+  return std::lower_bound(__first, __last, __val);
+#endif
 }
 
 template<typename _RandomAccessIterator, typename _Compare>
@@ -340,11 +360,11 @@ inline void sort_checked(_RandomAccessIterator __first,
                          _RandomAccessIterator __last,
                          const char *file, int line) {
 #ifdef SORTCHECK_SUPPORT_COMPARELESS_API
-  Compare1<SORTCHECK_DECLTYPE(*__first)> compare;
+  SingleTypedCompare<SORTCHECK_DECLTYPE(*__first)> compare;
   sort_checked(__first, __last, compare, file, line);
 #else
-  file = file;
-  line = line;
+  SORTCHECK_UNUSED(file);
+  SORTCHECK_UNUSED(line);
   std::sort(__first, __last);
 #endif  // SORTCHECK_SUPPORT_COMPARELESS_API
 }
