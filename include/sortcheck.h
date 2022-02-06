@@ -222,17 +222,20 @@ inline void check_ordered(_ForwardIterator __first,
   if (!(opts.checks & SORTCHECK_CHECK_ORDERED) || __first == __last)
     return;
 
-  bool is_prev_less = true;
+  int prev = -1;
   unsigned pos = 0;
   for (_ForwardIterator it = __first; it != __last; ++it, ++pos) {
-    bool is_less = __comp(*it, __val);
-    if (is_less && !is_prev_less) {
+    // -1 stands for "less than val",
+    // +1 for "greater than val" and 0 for "equal to val"
+    const int dir = __comp(*it, __val) ? -1 :
+      __comp(__val, *it) ? 1 : 0;
+    if (dir < prev) {
       std::ostringstream os;
       os << "sortcheck: " << file << ':' << line << ": unsorted range "
          << "at position " << pos;
       report_error(os.str(), opts);
     }
-    is_prev_less = is_less;
+    prev = dir;
   }
 }
 
