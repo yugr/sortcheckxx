@@ -37,6 +37,12 @@ namespace sortcheck {
 # define SORTCHECK_NOEXCEPT(expr)
 #endif
 
+enum {
+  LESS = -1,
+  EQ = 0,
+  GREATER = 1
+};
+
 // TODO: replace with std:less ?
 template<typename A>
 struct SingleTypedCompare {
@@ -144,20 +150,20 @@ inline void check_range(_RandomAccessIterator __first,
   const size_t n = std::min(size_t(__last - __first), sizeof(cmp) / sizeof(cmp[0]));
   for (size_t i = 0; i < n; ++i) {
     for (size_t j = 0; j < n; ++j) {
-      cmp[i][j] = __comp(*(__first + i), *(__first + j)) ? 1 : -1;
+      cmp[i][j] = __comp(*(__first + i), *(__first + j)) ? GREATER : LESS;
     }
   }
 
   for (size_t i = 0; i < n; ++i) {
     for (size_t j = 0; j <= i; ++j) {
-      if (cmp[i][j] < 0 && cmp[j][i] < 0)
-        cmp[i][j] = cmp[j][i] = 0;
+      if (cmp[i][j] == LESS && cmp[j][i] == LESS)
+        cmp[i][j] = cmp[j][i] = EQ;
     }
   }
 
   if (opts.checks & SORTCHECK_CHECK_REFLEXIVITY) {
     for (size_t i = 0; i < size_t(__last - __first); ++i) {
-      if (cmp[i][i] != 0) {
+      if (cmp[i][i] != EQ) {
         std::ostringstream os;
         os << "sortcheck: " << file << ':' << line << ": "
            << "irreflexive comparator at position " << i;
@@ -230,13 +236,12 @@ inline void check_ordered(_ForwardIterator __first,
   if (!(opts.checks & SORTCHECK_CHECK_ORDERED) || __first == __last)
     return;
 
-  int prev = -1;
+  int prev = LESS;
   unsigned pos = 0;
   for (_ForwardIterator it = __first; it != __last; ++it, ++pos) {
-    // -1 stands for "less than val",
-    // +1 for "greater than val" and 0 for "equal to val"
-    const int dir = __comp(*it, __val) ? -1 :
-      __comp(__val, *it) ? 1 : 0;
+    const int dir = __comp(*it, __val) ? LESS :
+      __comp(__val, *it) ? GREATER :
+      EQ;
     if (dir < prev) {
       std::ostringstream os;
       os << "sortcheck: " << file << ':' << line << ": unsorted range "
