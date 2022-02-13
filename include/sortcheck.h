@@ -210,7 +210,7 @@ inline void check_sorted(_ForwardIterator __first,
                          _Compare __comp,
                          const char *file, int line) {
   const Options &opts = get_options();
-  if (!(opts.checks & SORTCHECK_CHECK_SORTED))
+  if (!(opts.checks & SORTCHECK_CHECK_SORTED) || __first == __last)
     return;
 
   unsigned pos = 0;
