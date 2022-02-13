@@ -252,6 +252,32 @@ inline void check_ordered(_ForwardIterator __first,
   }
 }
 
+// A simpler version of check_ordered when presense of __comp(__val, *iter)
+// is not guaranteed (e.g. in std::lower_bound).
+template<typename _ForwardIterator, typename _Tp, typename _Compare>
+inline void check_ordered_simple(_ForwardIterator __first,
+                          _ForwardIterator __last,
+                          _Compare __comp,
+                          const _Tp &__val,
+                          const char *file, int line) {
+  const Options &opts = get_options();
+  if (!(opts.checks & SORTCHECK_CHECK_ORDERED) || __first == __last)
+    return;
+
+  int prev = LESS;
+  unsigned pos = 0;
+  for (_ForwardIterator it = __first; it != __last; ++it, ++pos) {
+    const int dir = __comp(*it, __val) ? LESS : GREATER;
+    if (dir < prev) {
+      std::ostringstream os;
+      os << "sortcheck: " << file << ':' << line << ": unsorted range "
+         << "at position " << pos;
+      report_error(os.str(), opts);
+    }
+    prev = dir;
+  }
+}
+
 template<typename _ForwardIterator, typename _Tp, typename _Compare>
 inline bool binary_search_checked(_ForwardIterator __first,
                                   _ForwardIterator __last,
@@ -300,8 +326,7 @@ inline _ForwardIterator lower_bound_checked(_ForwardIterator __first,
                                             _ForwardIterator __last,
                                             const _Tp &__val, _Compare __comp,
                                             const char *file, int line) {
-  check_ordered(__first, __last, __comp, __val, file, line);
-
+  check_ordered_simple(__first, __last, __comp, __val, file, line);
   return std::lower_bound(__first, __last, __val, __comp);
 }
 
