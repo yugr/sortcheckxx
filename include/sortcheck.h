@@ -46,7 +46,7 @@ enum {
 // TODO: replace with std:less ?
 template<typename A>
 struct SingleTypedCompare {
-  bool operator()(const A &lhs, const A &rhs) const SORTCHECK_NOEXCEPT(noexcept(lhs < rhs)) {
+  bool operator()(A lhs, A rhs) const SORTCHECK_NOEXCEPT(noexcept(lhs < rhs)) {
     return lhs < rhs;
   }
 };
@@ -54,10 +54,10 @@ struct SingleTypedCompare {
 // TODO: replace with std:less ?
 template<typename A, typename B>
 struct DoubleTypedCompare {
-  bool operator()(const A &lhs, const B &rhs) const SORTCHECK_NOEXCEPT(noexcept(lhs < rhs)) {
+  bool operator()(A lhs, B rhs) const SORTCHECK_NOEXCEPT(noexcept(lhs < rhs)) {
     return lhs < rhs;
   }
-  bool operator()(const B &lhs, const A &rhs) const SORTCHECK_NOEXCEPT(noexcept(lhs < rhs)) {
+  bool operator()(B lhs, A rhs) const SORTCHECK_NOEXCEPT(noexcept(lhs < rhs)) {
     return lhs < rhs;
   }
 };
@@ -291,14 +291,8 @@ inline bool binary_search_checked_full(_ForwardIterator __first,
                                        _ForwardIterator __last,
                                        const _Tp &__val,
                                        const char *file, int line) {
-#ifdef SORTCHECK_SUPPORT_COMPARELESS_API
-  DoubleTypedCompare<SORTCHECK_DECLTYPE(*__first), _Tp> compare;
+  SingleTypedCompare<_Tp> compare;
   return binary_search_checked_full(__first, __last, __val, compare, file, line);
-#else
-  SORTCHECK_UNUSED(file);
-  SORTCHECK_UNUSED(line);
-  return std::binary_search(__first, __last, __val);
-#endif
 }
 
 template<typename _ForwardIterator, typename _Tp, typename _Compare>
@@ -341,14 +335,8 @@ inline _ForwardIterator lower_bound_checked_full(_ForwardIterator __first,
                                                  _ForwardIterator __last,
                                                  const _Tp &__val,
                                                  const char *file, int line) {
-#ifdef SORTCHECK_SUPPORT_COMPARELESS_API
-  DoubleTypedCompare<SORTCHECK_DECLTYPE(*__first), _Tp> compare;
+  SingleTypedCompare<_Tp> compare;
   return lower_bound_checked_full(__first, __last, __val, compare, file, line);
-#else
-  SORTCHECK_UNUSED(file);
-  SORTCHECK_UNUSED(line);
-  return std::lower_bound(__first, __last, __val);
-#endif
 }
 
 template<typename _RandomAccessIterator, typename _Compare>
