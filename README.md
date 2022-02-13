@@ -42,12 +42,13 @@ $ PATH=path/to/scripts:$PATH make clean all
 ```
 
 Instrumented program may be controlled with environment variables:
-* `SORTCHECK_VERBOSE` - verbosity
-* `SORTCHECK_SYSLOG` - dump messages to syslog (in addition to stderr)
-* `SORTCHECK_ABORT_ON_ERROR` - call `abort()` on detected error
-* `SORTCHECK_EXIT_CODE` - call `exit(CODE)` on detected error
-* `SORTCHECK_OUTPUT` - write detected errors to file instead of stdout
-* `SORTCHECK_CHECKS` - set which checks are enabled via bitmask
+* `SORTCHECK_VERBOSE=N` - verbosity (`N` is an integer)
+* `SORTCHECK_SYSLOG=1` - dump messages to syslog (in addition to stderr)
+* `SORTCHECK_ABORT_ON_ERROR=1` - call `abort()` on detected error
+* `SORTCHECK_EXIT_CODE=N` - call `exit(CODE)` on detected error (`N` is an integer)
+* `SORTCHECK_OUTPUT=path/to/logfile` - write detected errors to file instead of stdout
+* `SORTCHECK_CHECKS=mask` - set which checks are enabled via bitmask
+  (e.g. `mask=0xfffe` would disable the generally uninteresting irreflexivity checks)
 
 # Interpreting the error messages
 
