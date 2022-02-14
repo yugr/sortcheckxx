@@ -98,6 +98,9 @@ inline const Options &get_options() {
     if (const char *checks = getenv("SORTCHECK_CHECKS")) {
       const bool is_binary = checks && checks[0] == '0' && (checks[1] == 'b' || checks[1] == 'B');
       opts.checks = strtoul(checks, NULL, is_binary ? 2 : 0);
+      if (!opts.checks) {
+        std::cerr << "sortcheck: all checks disabled in SORTCHECK_CHECKS\n";
+      }
     } else {
       opts.checks = ~0ul;
     }
