@@ -24,6 +24,6 @@ OPTS=$(echo "$@" | sed -e 's/[^ ]\+\.\(cc\|cpp\|c\|cxx\|C\)\( \|$\)//g')
 
 if test -n "$FILES" && ! (echo -- "$OPTS" | grep -q -- '-E\>'); then
   # TODO: strip unhandled flags (-ftree-XXX/-fno-tree-XXX, --lto, etc.)
-  $ROOT/bin/SortChecker $FILES -- $OPTS -w
+  $ROOT/bin/SortChecker $FILES -- $OPTS -w -fpermissive
 fi
 /usr/bin/$exe "$@" -I$ROOT/include
