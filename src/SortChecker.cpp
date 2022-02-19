@@ -155,6 +155,8 @@ public:
     auto Loc = E->getExprLoc();
     if (SM.isInSystemHeader(Loc))
       return true;
+    if (!Loc.isValid() || !Loc.isFileID())
+      return true;
 
     auto *Callee = skipImplicitCasts(E->getCallee());
     if (auto *DRE = dyn_cast<DeclRefExpr>(Callee)) {
