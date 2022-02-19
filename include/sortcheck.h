@@ -220,7 +220,7 @@ inline void check_sorted(_ForwardIterator __first,
   for (_ForwardIterator cur = __first, prev = cur++;
        cur != __last;
        ++prev, ++cur, ++pos) {
-    if (!__comp(*prev, *cur)) {
+    if (__comp(*cur, *prev)) {
       std::ostringstream os;
       os << "sortcheck: " << file << ':' << line << ": "
          << "unsorted range at position " << pos;
