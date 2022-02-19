@@ -193,24 +193,32 @@ public:
         auto IterTy = canonize(E->getArg(0)->getType());
         auto DerefTy = canonize(getDereferencedType(IterTy));
 
+        const bool HasDefaultCmp =
+            E->getNumArgs() == CompareFunctionInfo[CmpFunc].NumArgs;
+        const bool IsBuiltinCompare = HasDefaultCmp && isBuiltinType(DerefTy);
+
+        std::optional<bool> CheckRangeFlag;
         if (isKindOfBinarySearch(CmpFunc)) {
           // Enable additional checks if typeof(*__first) == _Tp
           // TODO: iterators must support random access
           auto ValueTy = canonize(E->getArg(2)->getType());
           if (areTypesCompatible(ValueTy, DerefTy)) {
             WrapperName += "_full";
+            CheckRangeFlag = !IsBuiltinCompare;
           }
-        }
-
-        // Do not instrument primitive types
-        const bool HasDefaultCmp =
-            E->getNumArgs() == CompareFunctionInfo[CmpFunc].NumArgs;
-        if (HasDefaultCmp && isBuiltinType(DerefTy))
+        } else if (IsBuiltinCompare) {
+          // Do not instrument std::sort for primitive types
           break;
+        }
 
         replaceCallee(DRE, WrapperName);
         appendLocationParams(E);
         ChangedFiles.insert(SM.getFileID(DRE->getExprLoc()));
+
+        if (CheckRangeFlag) {
+          SourceLocation Loc = E->getRParenLoc();
+          RW.InsertTextBefore(Loc, *CheckRangeFlag ? ", true" : ", false");
+        }
       } while (0);
     }
     return true;

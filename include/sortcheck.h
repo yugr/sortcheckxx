@@ -309,8 +309,10 @@ template<typename _ForwardIterator, typename _Tp, typename _Compare>
 inline bool binary_search_checked_full(_ForwardIterator __first,
                                        _ForwardIterator __last,
                                        const _Tp &__val, _Compare __comp,
+                                       bool do_check_range,
                                        const char *file, int line) {
-  check_range(__first, __last, __comp, file, line);
+  if (do_check_range)
+    check_range(__first, __last, __comp, file, line);
   check_sorted(__first, __last, __comp, file, line);
   return binary_search_checked(__first, __last, __val, __comp, file ,line);
 }
@@ -319,9 +321,10 @@ template<typename _ForwardIterator, typename _Tp>
 inline bool binary_search_checked_full(_ForwardIterator __first,
                                        _ForwardIterator __last,
                                        const _Tp &__val,
+                                       bool do_check_range,
                                        const char *file, int line) {
   SingleTypedCompare<_Tp> compare;
-  return binary_search_checked_full(__first, __last, __val, compare, file, line);
+  return binary_search_checked_full(__first, __last, __val, compare, do_check_range, file, line);
 }
 
 template<typename _ForwardIterator, typename _Tp, typename _Compare>
@@ -352,8 +355,10 @@ template<typename _ForwardIterator, typename _Tp, typename _Compare>
 inline _ForwardIterator lower_bound_checked_full(_ForwardIterator __first,
                                                  _ForwardIterator __last,
                                                  const _Tp &__val, _Compare __comp,
+                                                 bool do_check_range,
                                                  const char *file, int line) {
-  check_range(__first, __last, __comp, file, line);
+  if (do_check_range)
+    check_range(__first, __last, __comp, file, line);
   check_sorted(__first, __last, __comp, file, line);
   return lower_bound_checked(__first, __last, __val, __comp, file ,line);
 }
@@ -362,9 +367,10 @@ template<typename _ForwardIterator, typename _Tp>
 inline _ForwardIterator lower_bound_checked_full(_ForwardIterator __first,
                                                  _ForwardIterator __last,
                                                  const _Tp &__val,
+                                                 bool do_check_range,
                                                  const char *file, int line) {
   SingleTypedCompare<_Tp> compare;
-  return lower_bound_checked_full(__first, __last, __val, compare, file, line);
+  return lower_bound_checked_full(__first, __last, __val, compare, do_check_range, file, line);
 }
 
 template<typename _RandomAccessIterator, typename _Compare>
