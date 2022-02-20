@@ -11,23 +11,21 @@ axioms.
 
 We tested the tool on LLVM 6.0 (Ubuntu 18.04) and 10.0 (Ubuntu 20.04) for now.
 
-**It is currently work in progress.**
-
 # How to build
 
 To use, first install dependencies:
 ```
 $ sudo apt install libclang-dev llvm-dev
 ```
-Then build the tool
+and then build the tool
 ```
 $ make clean all
 ```
 
 # How to use
 
-SortChecker works by instrumenting, i.e. inserting additional checking code,
-into the source file. You can run it manually:
+SortChecker works by instrumenting the input file, i.e. inserting additional checking code into it.
+You can run it manually via
 ```
 $ SortChecker file.cpp -- $CXXFLAGS
 ```
@@ -53,8 +51,3 @@ Instrumented program may be controlled with environment variables:
 # Interpreting the error messages
 
 tbd
-
-# TODO
-
-- apply to test packages
-- integrate to old sortcheck (?)
