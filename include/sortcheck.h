@@ -396,6 +396,29 @@ inline void sort_checked(_RandomAccessIterator __first,
 #endif  // SORTCHECK_SUPPORT_COMPARELESS_API
 }
 
+template<typename _RandomAccessIterator, typename _Compare>
+inline void stable_sort_checked(_RandomAccessIterator __first,
+                         _RandomAccessIterator __last,
+                         _Compare __comp,
+                         const char *file, int line) {
+  check_range(__first, __last, __comp, file, line);
+  std::stable_sort(__first, __last, __comp);
+}
+
+template<typename _RandomAccessIterator>
+inline void stable_sort_checked(_RandomAccessIterator __first,
+                         _RandomAccessIterator __last,
+                         const char *file, int line) {
+#ifdef SORTCHECK_SUPPORT_COMPARELESS_API
+  SingleTypedCompare<SORTCHECK_DECLTYPE(*__first)> compare;
+  stable_sort_checked(__first, __last, compare, file, line);
+#else
+  SORTCHECK_UNUSED(file);
+  SORTCHECK_UNUSED(line);
+  std::stable_sort(__first, __last);
+#endif  // SORTCHECK_SUPPORT_COMPARELESS_API
+}
+
 } // anon namespace
 
 #endif

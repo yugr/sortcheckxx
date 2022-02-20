@@ -124,6 +124,7 @@ public:
   enum CompareFunction {
     CMP_FUNC_UNKNOWN = 0,
     CMP_FUNC_SORT,
+    CMP_FUNC_STABLE_SORT,
     CMP_FUNC_BINARY_SEARCH,
     CMP_FUNC_LOWER_BOUND,
     // TODO: other APIs from
@@ -144,6 +145,7 @@ public:
   CompareFunction getCompareFunction(const std::string &Name) {
     auto F = llvm::StringSwitch<CompareFunction>(Name)
                  .Case("std::sort", CMP_FUNC_SORT)
+                 .Case("std::stable_sort", CMP_FUNC_STABLE_SORT)
                  .Case("std::binary_search", CMP_FUNC_BINARY_SEARCH)
                  .Case("std::lower_bound", CMP_FUNC_LOWER_BOUND)
                  .Default(CMP_FUNC_UNKNOWN);
@@ -187,6 +189,7 @@ public:
         } CompareFunctionInfo[CMP_FUNC_NUM] = {
             {nullptr, 0},
             {"sortcheck::sort_checked", 2},
+            {"sortcheck::stable_sort_checked", 2},
             {"sortcheck::binary_search_checked", 3},
             {"sortcheck::lower_bound_checked", 3}};
 
