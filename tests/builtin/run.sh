@@ -22,4 +22,10 @@ if grep -q sortcheck builtin.cpp; then
   exit 1
 fi
 
+$ROOT/bin/SortChecker string.cpp --
+if grep -q sortcheck string.cpp; then
+  echo >&2 'Unexpected modifications'
+  exit 1
+fi
+
 echo SUCCESS

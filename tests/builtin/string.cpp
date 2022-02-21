@@ -5,12 +5,13 @@
 
 #include <algorithm>
 #include <vector>
+#include <string>
 
 int main() {
-  std::vector<int> v;
-  v.push_back(3);
-  v.push_back(2);
-  v.push_back(1);
+  std::vector<std::string> v;
+  v.push_back("a");
+  v.push_back("b");
+  v.push_back("c");
   std::sort(v.begin(), v.end());
   return 0;
 }

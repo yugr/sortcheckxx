@@ -91,6 +91,17 @@ class Visitor : public RecursiveASTVisitor<Visitor> {
     return QualType();
   }
 
+  bool isStdType(QualType Ty) const {
+    Ty = dropReferences(Ty);
+    auto Name = Ty.getAsString();
+    // FIXME: is there a better way to check namespace?
+    for (auto Prefix : {"std::", "struct std::", "class std::"}) {
+      if (0 == Name.compare(0, strlen(Prefix), Prefix))
+        return true;
+    }
+    return false;
+  }
+
   bool isBuiltinType(QualType Ty) const {
     Ty = dropReferences(Ty);
     return isa<BuiltinType>(Ty);
@@ -200,7 +211,7 @@ public:
 
         const bool HasDefaultCmp =
             E->getNumArgs() == CompareFunctionInfo[CmpFunc].NumArgs;
-        const bool IsBuiltinCompare = HasDefaultCmp && isBuiltinType(DerefTy);
+        const bool IsBuiltinCompare = HasDefaultCmp && (isBuiltinType(DerefTy) || isStdType(DerefTy));
 
         std::optional<bool> CheckRangeFlag;
         if (isKindOfBinarySearch(CmpFunc)) {
