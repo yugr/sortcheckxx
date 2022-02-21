@@ -12,10 +12,13 @@
 #include <sstream>
 
 #include <stdlib.h>
-#include <syslog.h>
 
 #include <unistd.h>
 #include <fcntl.h>
+
+// Alas, syslog.h defines very popular symbols like LOG_ERROR
+// so we can't include it
+extern "C" void syslog(int __pri, const char *__fmt, ...);
 
 namespace sortcheck {
 
@@ -62,8 +65,7 @@ inline const Options &get_options() {
     opts.verbose = verbose ? atoi(verbose) : 0;
 
     const char *slog = getenv("SORTCHECK_SYSLOG");
-    if ((opts.syslog = slog ? atoi(slog) : 0))
-      openlog(0, 0, LOG_USER);
+    opts.syslog = slog ? atoi(slog) : 0;
 
     const char *abrt = getenv("SORTCHECK_ABORT");
     opts.abort = abrt ? atoi(abrt) : 1;
@@ -97,8 +99,10 @@ inline const Options &get_options() {
 }
 
 inline void report_error(const std::string &msg, const Options &opts) {
+#define LOG_ERR 3  // From syslog.h
   if (opts.syslog)
     syslog(LOG_ERR, "%s", msg.c_str());
+#undef LOG_ERR
 
   char c = '\n';
   if (write(opts.out, msg.c_str(), msg.size()) >= 0
@@ -365,6 +369,6 @@ inline void stable_sort_checked(_RandomAccessIterator __first,
   stable_sort_checked(__first, __last, Compare(), file, line);
 }
 
-} // anon namespace
+} // namespace sortcheck
 
 #endif
