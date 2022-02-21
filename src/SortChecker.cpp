@@ -211,7 +211,8 @@ public:
 
         const bool HasDefaultCmp =
             E->getNumArgs() == CompareFunctionInfo[CmpFunc].NumArgs;
-        const bool IsBuiltinCompare = HasDefaultCmp && (isBuiltinType(DerefTy) || isStdType(DerefTy));
+        const bool IsBuiltinCompare =
+            HasDefaultCmp && (isBuiltinType(DerefTy) || isStdType(DerefTy));
 
         std::optional<bool> CheckRangeFlag;
         if (isKindOfBinarySearch(CmpFunc)) {
