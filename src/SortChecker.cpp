@@ -276,7 +276,7 @@ public:
     return std::make_unique<Consumer>(CI);
   }
 
-  void PrintHelp(llvm::raw_ostream &ros) { ros << "TODO\n"; }
+  void PrintHelp(llvm::raw_ostream &OS) { OS << "TODO\n"; }
 };
 
 } // namespace
