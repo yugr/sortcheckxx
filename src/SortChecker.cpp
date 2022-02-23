@@ -138,6 +138,7 @@ public:
     CMP_FUNC_STABLE_SORT,
     CMP_FUNC_BINARY_SEARCH,
     CMP_FUNC_LOWER_BOUND,
+    CMP_FUNC_UPPER_BOUND,
     // TODO: other APIs from
     // https://en.cppreference.com/w/cpp/named_req/Compare
     CMP_FUNC_NUM
@@ -147,6 +148,7 @@ public:
     switch (func) {
     case CMP_FUNC_BINARY_SEARCH:
     case CMP_FUNC_LOWER_BOUND:
+    case CMP_FUNC_UPPER_BOUND:
       return true;
     default:
       return false;
@@ -159,6 +161,7 @@ public:
                  .Case("std::stable_sort", CMP_FUNC_STABLE_SORT)
                  .Case("std::binary_search", CMP_FUNC_BINARY_SEARCH)
                  .Case("std::lower_bound", CMP_FUNC_LOWER_BOUND)
+                 .Case("std::upper_bound", CMP_FUNC_UPPER_BOUND)
                  .Default(CMP_FUNC_UNKNOWN);
     return F;
   }

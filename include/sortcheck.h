@@ -337,6 +337,44 @@ inline _ForwardIterator lower_bound_checked_full(_ForwardIterator __first,
   return lower_bound_checked_full(__first, __last, __val, Compare(), do_check_range, file, line);
 }
 
+template<typename _ForwardIterator, typename _Tp, typename _Compare>
+inline _ForwardIterator upper_bound_checked(_ForwardIterator __first,
+                                            _ForwardIterator __last,
+                                            const _Tp &__val, _Compare __comp,
+                                            const char *file, int line) {
+  check_ordered_simple(__first, __last, __comp, __val, file, line);
+  return std::upper_bound(__first, __last, __val, __comp);
+}
+
+template<typename _ForwardIterator, typename _Tp>
+inline _ForwardIterator upper_bound_checked(_ForwardIterator __first,
+                                            _ForwardIterator __last,
+                                            const _Tp &__val,
+                                            const char *file, int line) {
+  return upper_bound_checked(__first, __last, __val, Compare(), file, line);
+}
+
+template<typename _ForwardIterator, typename _Tp, typename _Compare>
+inline _ForwardIterator upper_bound_checked_full(_ForwardIterator __first,
+                                                 _ForwardIterator __last,
+                                                 const _Tp &__val, _Compare __comp,
+                                                 bool do_check_range,
+                                                 const char *file, int line) {
+  if (do_check_range)
+    check_range(__first, __last, __comp, file, line);
+  check_sorted(__first, __last, __comp, file, line);
+  return upper_bound_checked(__first, __last, __val, __comp, file ,line);
+}
+
+template<typename _ForwardIterator, typename _Tp>
+inline _ForwardIterator upper_bound_checked_full(_ForwardIterator __first,
+                                                 _ForwardIterator __last,
+                                                 const _Tp &__val,
+                                                 bool do_check_range,
+                                                 const char *file, int line) {
+  return upper_bound_checked_full(__first, __last, __val, Compare(), do_check_range, file, line);
+}
+
 template<typename _RandomAccessIterator, typename _Compare>
 inline void sort_checked(_RandomAccessIterator __first,
                          _RandomAccessIterator __last,
