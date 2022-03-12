@@ -335,6 +335,7 @@ public:
         ChangedFiles.insert(SM.getFileID(Loc));
       } while (0);
     }
+    // TODO: instrument std::map dtors
     return true;
   }
 
