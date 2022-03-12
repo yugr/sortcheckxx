@@ -91,13 +91,23 @@ class Visitor : public RecursiveASTVisitor<Visitor> {
     return QualType();
   }
 
+  Decl *getDecl(QualType Ty) const {
+    if (auto *TypedefTy = dyn_cast<TypedefType>(Ty.getTypePtr()))
+      return TypedefTy->getDecl();
+    if (auto *TagTy = dyn_cast<TagType>(Ty.getTypePtr()))
+      return TagTy->getDecl();
+    return nullptr;
+  }
+
   bool isStdType(QualType Ty) const {
     Ty = dropReferences(Ty);
-    auto Name = Ty.getAsString();
-    // FIXME: is there a better way to check namespace?
-    for (auto Prefix : {"std::", "struct std::", "class std::"}) {
-      if (0 == Name.compare(0, strlen(Prefix), Prefix))
-        return true;
+    if (auto *D = getDecl(Ty)) {
+      llvm::StringRef RootNSName;
+      for (auto *DC = D->getDeclContext(); DC; DC = DC->getParent())
+        if (const auto *NS = dyn_cast<NamespaceDecl>(DC);
+            NS && NS->getIdentifier())
+          RootNSName = NS->getIdentifier()->getName();
+      return RootNSName == "std";
     }
     return false;
   }
