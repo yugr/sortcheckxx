@@ -117,16 +117,13 @@ class Visitor : public RecursiveASTVisitor<Visitor> {
   }
 
   bool isStdLess(QualType Ty) const {
-    auto *D = getDecl(Ty);
-    if (!D)
-      return false;
-
-    auto *ND = dyn_cast<NamedDecl>(D);
-    std::string S;
-    llvm::raw_string_ostream OS(S);
-    ND->printQualifiedName(OS);
-
-    return OS.str() == "std::less";
+    if (auto *D = dyn_cast_or_null<NamedDecl>(getDecl(Ty))) {
+      std::string S;
+      llvm::raw_string_ostream OS(S);
+      D->printQualifiedName(OS);
+      return OS.str() == "std::less";
+    }
+    return false;
   }
 
   bool isBuiltinType(QualType Ty) const {
