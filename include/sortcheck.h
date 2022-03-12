@@ -10,6 +10,7 @@
 #include <functional>
 #include <iostream>
 #include <sstream>
+#include <vector>
 
 #include <stdlib.h>
 
@@ -405,6 +406,32 @@ inline void stable_sort_checked(_RandomAccessIterator __first,
                          _RandomAccessIterator __last,
                          const char *file, int line) {
   stable_sort_checked(__first, __last, Compare(), file, line);
+}
+
+template<typename Map>
+Map &check_associative(Map &m, const char *file, int line, typename Map::mapped_type *dummy = 0) {
+  std::vector<typename Map::key_type> keys;
+  for (typename Map::iterator i = m.begin(), end = m.end(); i != end; ++i)
+    keys.push_back(i->first);
+  check_range(keys.begin(), keys.end(), typename Map::key_compare(), file, line);
+  return m;
+}
+
+template<typename Map>
+Map *check_associative(Map *m, const char *file, int line, typename Map::mapped_type *dummy = 0) {
+  return &check_associative(*m, file, line);
+}
+
+template<typename Set>
+Set &check_associative(Set &m, const char *file, int line) {
+  std::vector<typename Set::key_type> keys(m.begin(), m.end());
+  check_range(keys.begin(), keys.end(), typename Set::key_compare(), file, line);
+  return m;
+}
+
+template<typename Set>
+Set *check_associative(Set *m, const char *file, int line) {
+  return &check_associative(*m, file, line);
 }
 
 } // namespace sortcheck

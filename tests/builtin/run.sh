@@ -16,16 +16,12 @@ cd $(dirname $0)
 
 ROOT=$PWD/../..
 
-$ROOT/bin/SortChecker builtin.cpp --
-if grep -q sortcheck builtin.cpp; then
-  echo >&2 'Unexpected modifications'
-  exit 1
-fi
-
-$ROOT/bin/SortChecker string.cpp --
-if grep -q sortcheck string.cpp; then
-  echo >&2 'Unexpected modifications'
-  exit 1
-fi
+for file in builtin.cpp string.cpp map.cpp; do
+  $ROOT/bin/SortChecker $file --
+  if grep -q sortcheck $file; then
+    echo >&2 'Unexpected modifications'
+    exit 1
+  fi
+done
 
 echo SUCCESS
