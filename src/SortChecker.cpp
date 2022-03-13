@@ -144,18 +144,6 @@ class Visitor : public RecursiveASTVisitor<Visitor> {
     return HaystackTy.getTypePtr() == NeedleTy.getTypePtr();
   }
 
-public:
-  Visitor(ASTContext &Ctx, Rewriter &RW) : Ctx(Ctx), RW(RW) {}
-
-#if 0
-  bool VisitExpr(Expr *E) {
-    llvm::errs() << "Expr at ";
-    E->getExprLoc().dump(Ctx.getSourceManager());
-    E->dump();
-    return true;
-  }
-#endif
-
   enum CompareFunction {
     CMP_FUNC_UNKNOWN = 0,
     CMP_FUNC_SORT,
@@ -209,6 +197,18 @@ public:
         .Case("multiset", CONTAINER_MULTISET)
         .Default(CONTAINER_UNKNOWN);
   }
+
+public:
+  Visitor(ASTContext &Ctx, Rewriter &RW) : Ctx(Ctx), RW(RW) {}
+
+#if 0
+  bool VisitExpr(Expr *E) {
+    llvm::errs() << "Expr at ";
+    E->getExprLoc().dump(Ctx.getSourceManager());
+    E->dump();
+    return true;
+  }
+#endif
 
   bool VisitCallExpr(CallExpr *E) {
     auto &SM = Ctx.getSourceManager();
