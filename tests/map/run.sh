@@ -21,7 +21,7 @@ CXXFLAGS='-Wall -Wextra -Werror -g'
 
 export SORTCHECK_ABORT=0
 
-for t in clear.cpp array.cpp; do
+for t in clear.cpp array.cpp dtor.cpp; do
   stem=$(echo $t | sed 's/\.cpp//')
   c++ $t $CXXFLAGS
   ./a.out > test.log 2>&1 || true
