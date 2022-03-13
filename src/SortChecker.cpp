@@ -198,7 +198,20 @@ class Visitor : public RecursiveASTVisitor<Visitor> {
         .Default(CONTAINER_UNKNOWN);
   }
 
+  bool isBuiltinCompare(QualType KeyTy, bool HasDefaultCmp) const {
+    return HasDefaultCmp && (isBuiltinType(KeyTy) || isStdType(KeyTy));
+  }
+
+  bool canInstrument(SourceLocation Loc, SourceManager &SM) const {
+    if (SM.isInSystemHeader(Loc))
+      return false;
+    if (!Loc.isValid() || !Loc.isFileID())
+      return false;
+    return true;
+  }
+
 public:
+
   Visitor(ASTContext &Ctx, Rewriter &RW) : Ctx(Ctx), RW(RW) {}
 
 #if 0
@@ -213,9 +226,7 @@ public:
   bool VisitCallExpr(CallExpr *E) {
     auto &SM = Ctx.getSourceManager();
     auto Loc = E->getExprLoc();
-    if (SM.isInSystemHeader(Loc))
-      return true;
-    if (!Loc.isValid() || !Loc.isFileID())
+    if (!canInstrument(Loc, SM))
       return true;
 
     auto *Callee = skipImplicitCasts(E->getCallee());
@@ -258,8 +269,7 @@ public:
 
         const bool HasDefaultCmp =
             E->getNumArgs() == CompareFunctionInfo[CmpFunc].NumArgs;
-        const bool IsBuiltinCompare =
-            HasDefaultCmp && (isBuiltinType(DerefTy) || isStdType(DerefTy));
+        const bool IsBuiltinCompare = isBuiltinCompare(DerefTy, HasDefaultCmp);
 
         std::optional<bool> CheckRangeFlag;
         if (isKindOfBinarySearch(CmpFunc)) {
@@ -320,8 +330,7 @@ public:
           auto CmpTy = ArgList.get(CompareArg).getAsType();
 
           const bool HasDefaultCmp = isStdLess(CmpTy);
-          const bool IsBuiltinCompare =
-              HasDefaultCmp && (isBuiltinType(KeyTy) || isStdType(KeyTy));
+          const bool IsBuiltinCompare = isBuiltinCompare(KeyTy, HasDefaultCmp);
 
           if (IsBuiltinCompare)
             break;
