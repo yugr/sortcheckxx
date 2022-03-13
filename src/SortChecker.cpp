@@ -178,12 +178,12 @@ class Visitor : public RecursiveASTVisitor<Visitor> {
 
   CompareFunction getCompareFunction(const std::string &Name) {
     return llvm::StringSwitch<CompareFunction>(Name)
-               .Case("std::sort", CMP_FUNC_SORT)
-               .Case("std::stable_sort", CMP_FUNC_STABLE_SORT)
-               .Case("std::binary_search", CMP_FUNC_BINARY_SEARCH)
-               .Case("std::lower_bound", CMP_FUNC_LOWER_BOUND)
-               .Case("std::upper_bound", CMP_FUNC_UPPER_BOUND)
-               .Default(CMP_FUNC_UNKNOWN);
+        .Case("std::sort", CMP_FUNC_SORT)
+        .Case("std::stable_sort", CMP_FUNC_STABLE_SORT)
+        .Case("std::binary_search", CMP_FUNC_BINARY_SEARCH)
+        .Case("std::lower_bound", CMP_FUNC_LOWER_BOUND)
+        .Case("std::upper_bound", CMP_FUNC_UPPER_BOUND)
+        .Default(CMP_FUNC_UNKNOWN);
   }
 
   Container getContainerType(const RecordDecl *D) const {
@@ -297,20 +297,19 @@ public:
 
         auto LocStr = Loc.printToString(SM);
         if (Verbose) {
-          llvm::errs() << "Found relevant function " << MD->getName() << "() at "
-                       << LocStr << ":\n";
+          llvm::errs() << "Found relevant function " << MD->getName()
+                       << "() at " << LocStr << ":\n";
           Callee->dump();
         }
 
         static struct {
           const char *Name;
           unsigned CompareArg;
-        } ContainerInfo[CONTAINER_NUM] = {
-            {nullptr, 0},
-            {"set", 1},
-            {"map", 2},
-            {"multiset", 1},
-            {"multimap", 2}};
+        } ContainerInfo[CONTAINER_NUM] = {{nullptr, 0},
+                                          {"set", 1},
+                                          {"map", 2},
+                                          {"multiset", 1},
+                                          {"multimap", 2}};
 
         auto CompareArg = ContainerInfo[Cont].CompareArg;
 
@@ -322,15 +321,17 @@ public:
 
           const bool HasDefaultCmp = isStdLess(CmpTy);
           const bool IsBuiltinCompare =
-            HasDefaultCmp && (isBuiltinType(KeyTy) || isStdType(KeyTy));
+              HasDefaultCmp && (isBuiltinType(KeyTy) || isStdType(KeyTy));
 
           if (IsBuiltinCompare)
             break;
         }
 
         auto *This = CE->getImplicitObjectArgument();
-        RW.InsertTextBefore(This->getBeginLoc(), "sortcheck::check_associative(");
-        auto EndLoc = Lexer::getLocForEndOfToken(This->getEndLoc(), 0, SM, Ctx.getLangOpts());
+        RW.InsertTextBefore(This->getBeginLoc(),
+                            "sortcheck::check_associative(");
+        auto EndLoc = Lexer::getLocForEndOfToken(This->getEndLoc(), 0, SM,
+                                                 Ctx.getLangOpts());
         RW.InsertTextAfter(EndLoc, ", __FILE__, __LINE__)");
         ChangedFiles.insert(SM.getFileID(Loc));
       } while (0);
