@@ -156,6 +156,16 @@ class Visitor : public RecursiveASTVisitor<Visitor> {
     CMP_FUNC_NUM
   };
 
+  static constexpr struct {
+    const char *WrapperName;
+    unsigned NumArgs;
+  } CompareFunctionInfo[CMP_FUNC_NUM] = {
+      {nullptr, 0},
+      {"sortcheck::sort_checked", 2},
+      {"sortcheck::stable_sort_checked", 2},
+      {"sortcheck::binary_search_checked", 3},
+      {"sortcheck::lower_bound_checked", 3}};
+
   enum Container {
     CONTAINER_UNKNOWN = 0,
     CONTAINER_SET,
@@ -164,6 +174,12 @@ class Visitor : public RecursiveASTVisitor<Visitor> {
     CONTAINER_MULTIMAP,
     CONTAINER_NUM
   };
+
+  static constexpr struct {
+    const char *Name;
+    unsigned CompareArg;
+  } ContainerInfo[CONTAINER_NUM] = {
+      {nullptr, 0}, {"set", 1}, {"map", 2}, {"multiset", 1}, {"multimap", 2}};
 
   LLVM_NODISCARD bool isKindOfBinarySearch(CompareFunction func) const {
     switch (func) {
@@ -210,8 +226,20 @@ class Visitor : public RecursiveASTVisitor<Visitor> {
     return true;
   }
 
-public:
+  bool isInterestingContainer(const RecordDecl *RD, unsigned CompareArg) const {
+    auto *SpecDecl = cast<ClassTemplateSpecializationDecl>(RD);
 
+    auto &ArgList = SpecDecl->getTemplateArgs();
+    auto KeyTy = ArgList.get(0).getAsType();
+    auto CmpTy = ArgList.get(CompareArg).getAsType();
+
+    const bool HasDefaultCmp = isStdLess(CmpTy);
+    const bool IsBuiltinCompare = isBuiltinCompare(KeyTy, HasDefaultCmp);
+
+    return !IsBuiltinCompare;
+  }
+
+public:
   Visitor(ASTContext &Ctx, Rewriter &RW) : Ctx(Ctx), RW(RW) {}
 
 #if 0
@@ -223,6 +251,76 @@ public:
   }
 #endif
 
+  // Instrument std::map dtors
+  // TODO: search for returns/throws recursively (dataTraverseStmtPre)
+  bool VisitCompoundStmt(CompoundStmt *CS) {
+    auto &SM = Ctx.getSourceManager();
+    auto Loc = CS->getBeginLoc();
+    if (!canInstrument(Loc, SM))
+      return true;
+
+    // Collect names of containers which can be instrumented
+    std::vector<std::string> Containers;
+    auto InsertLoc = CS->getEndLoc();
+    for (auto *S : CS->body()) {
+      if (isa<ReturnStmt>(S)) {
+        InsertLoc = S->getBeginLoc();
+        break;
+      }
+
+      auto *DS = dyn_cast<DeclStmt>(S);
+      if (!DS)
+        continue;
+
+      for (auto *D : DS->decls()) {
+        auto *VD = dyn_cast<VarDecl>(D);
+        if (!VD)
+          continue;
+
+        auto Ty = VD->getType().getCanonicalType();
+        auto *RTy = dyn_cast<RecordType>(Ty.getTypePtr());
+        if (!RTy)
+          continue;
+
+        auto *RD = RTy->getDecl();
+        auto Cont = getContainerType(RD);
+        if (!Cont)
+          continue;
+
+        auto Loc = DS->getBeginLoc();
+        auto LocStr = Loc.printToString(SM);
+        if (Verbose) {
+          llvm::errs() << "Found relevant map constructor " << VD->getName()
+                       << "() at " << LocStr << ":\n";
+          VD->dump();
+        }
+
+        auto CompareArg = ContainerInfo[Cont].CompareArg;
+        if (!isInterestingContainer(RD, CompareArg))
+          continue;
+
+        Containers.push_back(VD->getName());
+      }
+    }
+
+    // Insert instrumentation code
+    for (auto &Name : Containers) {
+      if (Verbose) {
+        auto LocStr = InsertLoc.printToString(SM);
+        llvm::errs() << "Instrumenting dtor for " << Name << " at " << LocStr
+                     << "\n";
+      }
+      std::string Code = "sortcheck::check_associative(";
+      Code += Name;
+      Code += ", __FILE__, __LINE__);\n";
+      RW.InsertTextBefore(InsertLoc, Code);
+      ChangedFiles.insert(SM.getFileID(Loc));
+    }
+
+    return true;
+  }
+
+  // Instrument calls to compare APIs
   bool VisitCallExpr(CallExpr *E) {
     auto &SM = Ctx.getSourceManager();
     auto Loc = E->getExprLoc();
@@ -251,16 +349,6 @@ public:
                        << LocStr << ":\n";
           Callee->dump();
         }
-
-        static struct {
-          const char *WrapperName;
-          unsigned NumArgs;
-        } CompareFunctionInfo[CMP_FUNC_NUM] = {
-            {nullptr, 0},
-            {"sortcheck::sort_checked", 2},
-            {"sortcheck::stable_sort_checked", 2},
-            {"sortcheck::binary_search_checked", 3},
-            {"sortcheck::lower_bound_checked", 3}};
 
         std::string WrapperName = CompareFunctionInfo[CmpFunc].WrapperName;
 
@@ -312,29 +400,9 @@ public:
           Callee->dump();
         }
 
-        static struct {
-          const char *Name;
-          unsigned CompareArg;
-        } ContainerInfo[CONTAINER_NUM] = {{nullptr, 0},
-                                          {"set", 1},
-                                          {"map", 2},
-                                          {"multiset", 1},
-                                          {"multimap", 2}};
-
         auto CompareArg = ContainerInfo[Cont].CompareArg;
-
-        if (auto *SpecDecl = dyn_cast<ClassTemplateSpecializationDecl>(RD)) {
-          auto &ArgList = SpecDecl->getTemplateArgs();
-
-          auto KeyTy = ArgList.get(0).getAsType();
-          auto CmpTy = ArgList.get(CompareArg).getAsType();
-
-          const bool HasDefaultCmp = isStdLess(CmpTy);
-          const bool IsBuiltinCompare = isBuiltinCompare(KeyTy, HasDefaultCmp);
-
-          if (IsBuiltinCompare)
-            break;
-        }
+        if (!isInterestingContainer(RD, CompareArg))
+          break;
 
         auto *This = CE->getImplicitObjectArgument();
         RW.InsertTextBefore(This->getBeginLoc(),
@@ -345,7 +413,6 @@ public:
         ChangedFiles.insert(SM.getFileID(Loc));
       } while (0);
     }
-    // TODO: instrument std::map dtors
     return true;
   }
 
