@@ -151,8 +151,10 @@ class Visitor : public RecursiveASTVisitor<Visitor> {
     CMP_FUNC_BINARY_SEARCH,
     CMP_FUNC_LOWER_BOUND,
     CMP_FUNC_UPPER_BOUND,
+    CMP_FUNC_EQUAL_RANGE,
     // TODO: other APIs from
     // https://en.cppreference.com/w/cpp/named_req/Compare
+    // most notably std::max_element and std::is_sorted.
     CMP_FUNC_NUM
   };
 
@@ -170,6 +172,7 @@ class Visitor : public RecursiveASTVisitor<Visitor> {
     case CMP_FUNC_BINARY_SEARCH:
     case CMP_FUNC_LOWER_BOUND:
     case CMP_FUNC_UPPER_BOUND:
+    case CMP_FUNC_EQUAL_RANGE:
       return true;
     default:
       return false;
@@ -183,6 +186,7 @@ class Visitor : public RecursiveASTVisitor<Visitor> {
         .Case("std::binary_search", CMP_FUNC_BINARY_SEARCH)
         .Case("std::lower_bound", CMP_FUNC_LOWER_BOUND)
         .Case("std::upper_bound", CMP_FUNC_UPPER_BOUND)
+        .Case("std::equal_range", CMP_FUNC_EQUAL_RANGE)
         .Default(CMP_FUNC_UNKNOWN);
   }
 
@@ -260,7 +264,9 @@ public:
             {"sortcheck::sort_checked", 2},
             {"sortcheck::stable_sort_checked", 2},
             {"sortcheck::binary_search_checked", 3},
-            {"sortcheck::lower_bound_checked", 3}};
+            {"sortcheck::lower_bound_checked", 3},
+            {"sortcheck::upper_bound_checked", 3},
+            {"sortcheck::equal_range_checked", 3}};
 
         std::string WrapperName = CompareFunctionInfo[CmpFunc].WrapperName;
 
