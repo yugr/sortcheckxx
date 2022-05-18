@@ -413,7 +413,7 @@ Map &check_associative(Map &m, const char *file, int line, typename Map::mapped_
   std::vector<typename Map::key_type> keys;
   for (typename Map::iterator i = m.begin(), end = m.end(); i != end; ++i)
     keys.push_back(i->first);
-  check_range(keys.begin(), keys.end(), typename Map::key_compare(), file, line);
+  check_range(keys.begin(), keys.end(), m.key_comp(), file, line);
   return m;
 }
 
@@ -425,7 +425,7 @@ Map *check_associative(Map *m, const char *file, int line, typename Map::mapped_
 template<typename Set>
 Set &check_associative(Set &m, const char *file, int line) {
   std::vector<typename Set::key_type> keys(m.begin(), m.end());
-  check_range(keys.begin(), keys.end(), typename Set::key_compare(), file, line);
+  check_range(keys.begin(), keys.end(), m.key_comp(), file, line);
   return m;
 }
 
