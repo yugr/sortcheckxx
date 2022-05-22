@@ -446,6 +446,38 @@ inline void stable_sort_checked(_RandomAccessIterator __first,
   stable_sort_checked(__first, __last, Compare(), file, line);
 }
 
+template<typename _RandomAccessIterator, typename _Compare>
+inline _RandomAccessIterator max_element_checked(_RandomAccessIterator __first,
+                                                 _RandomAccessIterator __last,
+                                                 _Compare __comp,
+                                                 const char *file, int line) {
+  check_range(__first, __last, __comp, file, line);
+  return std::max_element(__first, __last, __comp);
+}
+
+template<typename _RandomAccessIterator>
+inline _RandomAccessIterator max_element_checked(_RandomAccessIterator __first,
+                                                 _RandomAccessIterator __last,
+                                                 const char *file, int line) {
+  return max_element_checked(__first, __last, Compare(), file, line);
+}
+
+template<typename _RandomAccessIterator, typename _Compare>
+inline _RandomAccessIterator min_element_checked(_RandomAccessIterator __first,
+                                                 _RandomAccessIterator __last,
+                                                 _Compare __comp,
+                                                 const char *file, int line) {
+  check_range(__first, __last, __comp, file, line);
+  return std::min_element(__first, __last, __comp);
+}
+
+template<typename _RandomAccessIterator>
+inline _RandomAccessIterator min_element_checked(_RandomAccessIterator __first,
+                                                 _RandomAccessIterator __last,
+                                                 const char *file, int line) {
+  return min_element_checked(__first, __last, Compare(), file, line);
+}
+
 template<typename Map>
 Map &check_associative(Map &m, const char *file, int line, typename Map::mapped_type *dummy = 0) {
   std::vector<typename Map::key_type> keys;

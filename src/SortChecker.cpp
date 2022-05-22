@@ -160,9 +160,10 @@ class Visitor : public RecursiveASTVisitor<Visitor> {
     CMP_FUNC_LOWER_BOUND,
     CMP_FUNC_UPPER_BOUND,
     CMP_FUNC_EQUAL_RANGE,
+    CMP_FUNC_MAX_ELEMENT,
+    CMP_FUNC_MIN_ELEMENT,
     // TODO: other APIs from
     // https://en.cppreference.com/w/cpp/named_req/Compare
-    // most notably std::max_element and std::is_sorted.
     CMP_FUNC_NUM
   };
 
@@ -187,6 +188,16 @@ class Visitor : public RecursiveASTVisitor<Visitor> {
     }
   }
 
+  LLVM_NODISCARD bool isKindOfMaxElement(CompareFunction func) const {
+    switch (func) {
+    case CMP_FUNC_MAX_ELEMENT:
+    case CMP_FUNC_MIN_ELEMENT:
+      return true;
+    default:
+      return false;
+    }
+  }
+
   CompareFunction getCompareFunction(const std::string &Name) {
     return llvm::StringSwitch<CompareFunction>(Name)
         .Case("std::sort", CMP_FUNC_SORT)
@@ -195,6 +206,8 @@ class Visitor : public RecursiveASTVisitor<Visitor> {
         .Case("std::lower_bound", CMP_FUNC_LOWER_BOUND)
         .Case("std::upper_bound", CMP_FUNC_UPPER_BOUND)
         .Case("std::equal_range", CMP_FUNC_EQUAL_RANGE)
+        .Case("std::max_element", CMP_FUNC_MAX_ELEMENT)
+        .Case("std::min_element", CMP_FUNC_MIN_ELEMENT)
         .Default(CMP_FUNC_UNKNOWN);
   }
 
@@ -274,7 +287,9 @@ public:
             {"sortcheck::binary_search_checked", 3},
             {"sortcheck::lower_bound_checked", 3},
             {"sortcheck::upper_bound_checked", 3},
-            {"sortcheck::equal_range_checked", 3}};
+            {"sortcheck::equal_range_checked", 3},
+            {"sortcheck::max_element_checked", 2},
+            {"sortcheck::min_element_checked", 2}};
 
         std::string WrapperName = CompareFunctionInfo[CmpFunc].WrapperName;
 
@@ -289,12 +304,14 @@ public:
         std::optional<bool> CheckRangeFlag;
         if (isKindOfBinarySearch(CmpFunc)) {
           // Enable additional checks if typeof(*__first) == _Tp
-          // TODO: iterators must support random access
           auto ValueTy = canonize(E->getArg(2)->getType());
           if (IsRandomAccess && areTypesCompatible(ValueTy, DerefTy)) {
             WrapperName += "_full";
             CheckRangeFlag = !IsBuiltinCompare;
           }
+        } else if (isKindOfMaxElement(CmpFunc)) {
+          if (IsBuiltinCompare || !IsRandomAccess)
+            break;
         } else if (IsBuiltinCompare) {
           // Do not instrument std::sort for primitive types
           break;
