@@ -62,15 +62,23 @@ class Visitor : public RecursiveASTVisitor<Visitor> {
   }
 
   // Locate operator*() in D if it's a CXX class
-  CXXMethodDecl *findStarOperator(RecordDecl *D) const {
+  CXXMethodDecl *findOperator(RecordDecl *D, OverloadedOperatorKind OpKind) const {
     if (const auto *RD = dyn_cast<CXXRecordDecl>(D)) {
       for (auto *Method : RD->methods()) {
-        if (Method->getOverloadedOperator() == OO_Star) {
+        if (Method->getOverloadedOperator() == OpKind) {
           return Method;
         }
       }
     }
     return nullptr;
+  }
+
+  bool isRandomAccessIterator(QualType Ty) const {
+    if (isa<PointerType>(Ty.getTypePtr()))
+      return true;
+    if (auto *RD = Ty->getAsCXXRecordDecl())
+      return findOperator(RD, OO_Plus);
+    return false;
   }
 
   QualType canonize(QualType Ty) const {
@@ -84,7 +92,7 @@ class Visitor : public RecursiveASTVisitor<Visitor> {
     }
 
     if (auto *RTy = dyn_cast<RecordType>(Ty.getTypePtr())) {
-      if (auto *StarOp = findStarOperator(RTy->getDecl()))
+      if (auto *StarOp = findOperator(RTy->getDecl(), OO_Star))
         return canonize(StarOp->getReturnType());
     }
 
@@ -276,13 +284,14 @@ public:
         const bool HasDefaultCmp =
             E->getNumArgs() == CompareFunctionInfo[CmpFunc].NumArgs;
         const bool IsBuiltinCompare = isBuiltinCompare(DerefTy, HasDefaultCmp);
+        const bool IsRandomAccess = isRandomAccessIterator(IterTy);
 
         std::optional<bool> CheckRangeFlag;
         if (isKindOfBinarySearch(CmpFunc)) {
           // Enable additional checks if typeof(*__first) == _Tp
           // TODO: iterators must support random access
           auto ValueTy = canonize(E->getArg(2)->getType());
-          if (areTypesCompatible(ValueTy, DerefTy)) {
+          if (IsRandomAccess && areTypesCompatible(ValueTy, DerefTy)) {
             WrapperName += "_full";
             CheckRangeFlag = !IsBuiltinCompare;
           }
