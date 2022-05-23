@@ -262,6 +262,8 @@ inline void check_ordered_simple(_ForwardIterator __first,
   }
 }
 
+// binary_search overloads
+
 template<typename _ForwardIterator, typename _Tp, typename _Compare>
 inline bool binary_search_checked(_ForwardIterator __first,
                                   _ForwardIterator __last,
@@ -299,6 +301,8 @@ inline bool binary_search_checked_full(_ForwardIterator __first,
                                        const char *file, int line) {
   return binary_search_checked_full(__first, __last, __val, Compare(), do_check_range, file, line);
 }
+
+// lower_bound overloads
 
 template<typename _ForwardIterator, typename _Tp, typename _Compare>
 inline _ForwardIterator lower_bound_checked(_ForwardIterator __first,
@@ -338,6 +342,8 @@ inline _ForwardIterator lower_bound_checked_full(_ForwardIterator __first,
   return lower_bound_checked_full(__first, __last, __val, Compare(), do_check_range, file, line);
 }
 
+// upper_bound overloads
+
 template<typename _ForwardIterator, typename _Tp, typename _Compare>
 inline _ForwardIterator upper_bound_checked(_ForwardIterator __first,
                                             _ForwardIterator __last,
@@ -375,6 +381,8 @@ inline _ForwardIterator upper_bound_checked_full(_ForwardIterator __first,
                                                  const char *file, int line) {
   return upper_bound_checked_full(__first, __last, __val, Compare(), do_check_range, file, line);
 }
+
+// equal_range overloads
 
 template<typename _ForwardIterator, typename _Tp, typename _Compare>
 inline std::pair<_ForwardIterator, _ForwardIterator> equal_range_checked(_ForwardIterator __first,
@@ -414,6 +422,8 @@ inline std::pair<_ForwardIterator, _ForwardIterator> equal_range_checked_full(_F
   return equal_range_checked_full(__first, __last, __val, Compare(), do_check_range, file, line);
 }
 
+// sort overloads
+
 template<typename _RandomAccessIterator, typename _Compare>
 inline void sort_checked(_RandomAccessIterator __first,
                          _RandomAccessIterator __last,
@@ -429,6 +439,8 @@ inline void sort_checked(_RandomAccessIterator __first,
                          const char *file, int line) {
   sort_checked(__first, __last, Compare(), file, line);
 }
+
+// stable_sort overloads
 
 template<typename _RandomAccessIterator, typename _Compare>
 inline void stable_sort_checked(_RandomAccessIterator __first,
@@ -446,6 +458,8 @@ inline void stable_sort_checked(_RandomAccessIterator __first,
   stable_sort_checked(__first, __last, Compare(), file, line);
 }
 
+// max_element overloads
+
 template<typename _RandomAccessIterator, typename _Compare>
 inline _RandomAccessIterator max_element_checked(_RandomAccessIterator __first,
                                                  _RandomAccessIterator __last,
@@ -462,6 +476,8 @@ inline _RandomAccessIterator max_element_checked(_RandomAccessIterator __first,
   return max_element_checked(__first, __last, Compare(), file, line);
 }
 
+// min_element overloads
+
 template<typename _RandomAccessIterator, typename _Compare>
 inline _RandomAccessIterator min_element_checked(_RandomAccessIterator __first,
                                                  _RandomAccessIterator __last,
@@ -477,6 +493,8 @@ inline _RandomAccessIterator min_element_checked(_RandomAccessIterator __first,
                                                  const char *file, int line) {
   return min_element_checked(__first, __last, Compare(), file, line);
 }
+
+// std::map/set checks
 
 template<typename Map>
 Map &check_map(Map &m, const char *file, int line) {
