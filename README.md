@@ -4,12 +4,15 @@
 [![Total alerts](https://img.shields.io/lgtm/alerts/g/yugr/sortcheckxx.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/yugr/sortcheckxx/alerts/)
 [![Coverity Scan](https://scan.coverity.com/projects/yugr-sortcheckxx/badge.svg)](https://scan.coverity.com/projects/yugr-sortcheckxx)
 
-SortChecker++ is an extension of [SortChecker](https://github.com/yugr/sortcheck) tool
-to C++ sorting APIs like `std::sort` or `std::binary_search`.
-It verifies that comparators satisfy the [Strict Weak Ordering](https://medium.com/@shiansu/strict-weak-ordering-and-the-c-stl-f7dcfa4d4e07)
+SortChecker++ verifies that comparators in C++ APIs like `std::sort` or `std::binary_search`
+satisfy the [Strict Weak Ordering](https://medium.com/@shiansu/strict-weak-ordering-and-the-c-stl-f7dcfa4d4e07)
 axioms.
+Violation of these axioms is undefined behavior and may lead to all sorts of runtime
+errors including [aborts](https://stackoverflow.com/questions/2441045/bewildering-segfault-involving-stl-sort-algorithm) (see [this answer](https://stackoverflow.com/a/24048654/2170527) for explanations).
 
-We tested the tool on LLVM 6.0 (Ubuntu 18.04) and 10.0 (Ubuntu 20.04) for now.
+SortChecker++ is an extension of [SortChecker](https://github.com/yugr/sortcheck) tool which does similar job to C sorting APIs.
+
+The tool has been tested on LLVM 6.0 (Ubuntu 18.04) and 10.0 (Ubuntu 20.04).
 
 # How to build
 
