@@ -30,9 +30,9 @@ namespace sortcheck {
 #endif
 
 enum {
-  LESS = -1,
-  EQ = 0,
-  GREATER = 1
+  SORTCHECK_LESS = -1,
+  SORTCHECK_EQUAL = 0,
+  SORTCHECK_GREATER = 1
 };
 
 struct Compare {
@@ -134,20 +134,20 @@ inline void check_range(_RandomAccessIterator __first,
   const size_t n = std::min(size_t(__last - __first), sizeof(cmp) / sizeof(cmp[0]));
   for (size_t i = 0; i < n; ++i) {
     for (size_t j = 0; j < n; ++j) {
-      cmp[i][j] = __comp(*(__first + i), *(__first + j)) ? GREATER : LESS;
+      cmp[i][j] = __comp(*(__first + i), *(__first + j)) ? SORTCHECK_GREATER : SORTCHECK_LESS;
     }
   }
 
   for (size_t i = 0; i < n; ++i) {
     for (size_t j = 0; j <= i; ++j) {
-      if (cmp[i][j] == LESS && cmp[j][i] == LESS)
-        cmp[i][j] = cmp[j][i] = EQ;
+      if (cmp[i][j] == SORTCHECK_LESS && cmp[j][i] == SORTCHECK_LESS)
+        cmp[i][j] = cmp[j][i] = SORTCHECK_EQUAL;
     }
   }
 
   if (opts.checks & SORTCHECK_CHECK_REFLEXIVITY) {
     for (size_t i = 0; i < size_t(__last - __first); ++i) {
-      if (cmp[i][i] != EQ) {
+      if (cmp[i][i] != SORTCHECK_EQUAL) {
         std::ostringstream os;
         os << "sortcheck: " << file << ':' << line << ": "
            << "irreflexive comparator at position " << i;
@@ -220,12 +220,12 @@ inline void check_ordered(_ForwardIterator __first,
   if (!(opts.checks & SORTCHECK_CHECK_ORDERED) || __first == __last)
     return;
 
-  int prev = LESS;
+  int prev = SORTCHECK_LESS;
   unsigned pos = 0;
   for (_ForwardIterator it = __first; it != __last; ++it, ++pos) {
-    const int dir = __comp(*it, __val) ? LESS :
-      __comp(__val, *it) ? GREATER :
-      EQ;
+    const int dir = __comp(*it, __val) ? SORTCHECK_LESS :
+      __comp(__val, *it) ? SORTCHECK_GREATER :
+      SORTCHECK_EQUAL;
     if (dir < prev) {
       std::ostringstream os;
       os << "sortcheck: " << file << ':' << line << ": unsorted range "
@@ -248,10 +248,10 @@ inline void check_ordered_simple(_ForwardIterator __first,
   if (!(opts.checks & SORTCHECK_CHECK_ORDERED) || __first == __last)
     return;
 
-  int prev = LESS;
+  int prev = SORTCHECK_LESS;
   unsigned pos = 0;
   for (_ForwardIterator it = __first; it != __last; ++it, ++pos) {
-    const int dir = __comp(*it, __val) ? LESS : GREATER;
+    const int dir = __comp(*it, __val) ? SORTCHECK_LESS : SORTCHECK_GREATER;
     if (dir < prev) {
       std::ostringstream os;
       os << "sortcheck: " << file << ':' << line << ": unsorted range "
