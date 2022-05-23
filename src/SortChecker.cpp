@@ -346,12 +346,13 @@ public:
 
         static struct {
           const char *Name;
+          const char *Suffix;
           unsigned CompareArg;
-        } ContainerInfo[CONTAINER_NUM] = {{nullptr, 0},
-                                          {"set", 1},
-                                          {"map", 2},
-                                          {"multiset", 1},
-                                          {"multimap", 2}};
+        } ContainerInfo[CONTAINER_NUM] = {{nullptr, nullptr, 0},
+                                          {"set", "set", 1},
+                                          {"map", "map", 2},
+                                          {"multiset", "set", 1},
+                                          {"multimap", "map", 2}};
 
         auto CompareArg = ContainerInfo[Cont].CompareArg;
 
@@ -369,8 +370,10 @@ public:
         }
 
         auto *This = CE->getImplicitObjectArgument();
-        RW.InsertTextBefore(This->getBeginLoc(),
-                            "sortcheck::check_associative(");
+        std::string Call = "sortcheck::check_";
+        Call += ContainerInfo[Cont].Suffix;
+        Call += "(";
+        RW.InsertTextBefore(This->getBeginLoc(), Call.c_str());
         auto EndLoc = Lexer::getLocForEndOfToken(This->getEndLoc(), 0, SM,
                                                  Ctx.getLangOpts());
         RW.InsertTextAfter(EndLoc, ", __FILE__, __LINE__)");

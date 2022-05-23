@@ -479,7 +479,7 @@ inline _RandomAccessIterator min_element_checked(_RandomAccessIterator __first,
 }
 
 template<typename Map>
-Map &check_associative(Map &m, const char *file, int line, typename Map::mapped_type *dummy = 0) {
+Map &check_map(Map &m, const char *file, int line) {
   std::vector<typename Map::key_type> keys;
   for (typename Map::iterator i = m.begin(), end = m.end(); i != end; ++i)
     keys.push_back(i->first);
@@ -488,20 +488,20 @@ Map &check_associative(Map &m, const char *file, int line, typename Map::mapped_
 }
 
 template<typename Map>
-Map *check_associative(Map *m, const char *file, int line, typename Map::mapped_type *dummy = 0) {
-  return &check_associative(*m, file, line);
+Map *check_associative_map(Map *m, const char *file, int line) {
+  return &check_map(*m, file, line);
 }
 
 template<typename Set>
-Set &check_associative(Set &m, const char *file, int line) {
+Set &check_set(Set &m, const char *file, int line) {
   std::vector<typename Set::key_type> keys(m.begin(), m.end());
   check_range(keys.begin(), keys.end(), m.key_comp(), file, line);
   return m;
 }
 
 template<typename Set>
-Set *check_associative(Set *m, const char *file, int line) {
-  return &check_associative(*m, file, line);
+Set *check_set(Set *m, const char *file, int line) {
+  return &check_set(*m, file, line);
 }
 
 } // namespace sortcheck
