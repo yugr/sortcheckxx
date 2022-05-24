@@ -517,7 +517,7 @@ Map &check_map(Map &m, const char *file, int line) {
 }
 
 template<typename Map>
-Map *check_associative_map(Map *m, const char *file, int line) {
+Map *check_map(Map *m, const char *file, int line) {
   return &check_map(*m, file, line);
 }
 
