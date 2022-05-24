@@ -42,6 +42,16 @@ struct Compare {
   }
 };
 
+template<typename Compare>
+struct CompareSwapped {
+  Compare &comp;
+  CompareSwapped(Compare &comp): comp(comp) {}
+  template<typename A, typename B>
+  bool operator()(A a, B b) {
+    return comp(b, a);
+  }
+};
+
 struct Options {
   bool abort;
   int verbose;
@@ -349,7 +359,8 @@ inline _ForwardIterator upper_bound_checked(_ForwardIterator __first,
                                             _ForwardIterator __last,
                                             const _Tp &__val, _Compare __comp,
                                             const char *file, int line) {
-  check_ordered_simple(__first, __last, __comp, __val, file, line);
+  CompareSwapped<_Compare> __comp_swapped(__comp);
+  check_ordered_simple(__first, __last, __comp_swapped, __val, file, line);
   return std::upper_bound(__first, __last, __val, __comp);
 }
 
