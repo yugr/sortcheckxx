@@ -45,7 +45,7 @@ struct Compare {
 template<typename Compare>
 struct CompareSwapped {
   Compare &comp;
-  CompareSwapped(Compare &comp): comp(comp) {}
+  CompareSwapped(Compare &c): comp(c) {}
   template<typename A, typename B>
   bool operator()(A a, B b) {
     return comp(b, a);
