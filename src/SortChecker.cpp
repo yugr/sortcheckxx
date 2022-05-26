@@ -62,13 +62,17 @@ class Visitor : public RecursiveASTVisitor<Visitor> {
   }
 
   // Locate operator*() in D if it's a CXX class
-  CXXMethodDecl *findOperator(RecordDecl *D, OverloadedOperatorKind OpKind) const {
-    if (const auto *RD = dyn_cast<CXXRecordDecl>(D)) {
-      for (auto *Method : RD->methods()) {
-        if (Method->getOverloadedOperator() == OpKind) {
-          return Method;
-        }
+  CXXMethodDecl *findOperator(CXXRecordDecl *RD, OverloadedOperatorKind OpKind) const {
+    for (auto *Method : RD->methods()) {
+      if (Method->getOverloadedOperator() == OpKind) {
+        return Method;
       }
+    }
+    for (auto &Base : RD->bases()) {
+      // TODO: consider access specifier?
+      auto *BaseRD = Base.getType()->getAsCXXRecordDecl();
+      if (auto *MD = findOperator(BaseRD, OpKind))
+        return MD;
     }
     return nullptr;
   }
@@ -91,8 +95,8 @@ class Visitor : public RecursiveASTVisitor<Visitor> {
       return PTy->getPointeeType();
     }
 
-    if (auto *RTy = dyn_cast<RecordType>(Ty.getTypePtr())) {
-      if (auto *StarOp = findOperator(RTy->getDecl(), OO_Star))
+    if (auto *RD = Ty->getAsCXXRecordDecl()) {
+      if (auto *StarOp = findOperator(RD, OO_Star))
         return canonize(StarOp->getReturnType());
     }
 
