@@ -14,9 +14,9 @@
 
 #include <stdlib.h>
 
-#include <unistd.h>
-#include <fcntl.h>
 #include <errno.h>
+#include <fcntl.h>
+#include <unistd.h>
 
 // Alas, syslog.h defines very popular symbols like LOG_ERROR
 // so we can't include it
@@ -25,30 +25,25 @@ extern "C" void syslog(int __pri, const char *__fmt, ...);
 namespace sortcheck {
 
 #if __cplusplus >= 201100L
-# define SORTCHECK_NOEXCEPT(expr) noexcept(expr)
+#define SORTCHECK_NOEXCEPT(expr) noexcept(expr)
 #else
-# define SORTCHECK_NOEXCEPT(expr)
+#define SORTCHECK_NOEXCEPT(expr)
 #endif
 
-enum {
-  SORTCHECK_LESS = -1,
-  SORTCHECK_EQUAL = 0,
-  SORTCHECK_GREATER = 1
-};
+enum { SORTCHECK_LESS = -1, SORTCHECK_EQUAL = 0, SORTCHECK_GREATER = 1 };
 
 struct Compare {
-  template<typename A, typename B>
-  bool operator()(const A &lhs, const B &rhs) const SORTCHECK_NOEXCEPT(noexcept(lhs < rhs)) {
+  template <typename A, typename B>
+  bool operator()(const A &lhs, const B &rhs) const
+      SORTCHECK_NOEXCEPT(noexcept(lhs < rhs)) {
     return lhs < rhs;
   }
 };
 
-template<typename Compare>
-struct CompareSwapped {
+template <typename Compare> struct CompareSwapped {
   Compare &comp;
-  CompareSwapped(Compare &c): comp(c) {}
-  template<typename A, typename B>
-  bool operator()(A a, B b) {
+  CompareSwapped(Compare &c) : comp(c) {}
+  template <typename A, typename B> bool operator()(A a, B b) {
     return comp(b, a);
   }
 };
@@ -86,7 +81,8 @@ inline const Options &get_options() {
     opts.exit_code = exit_code ? atoi(exit_code) : 1;
 
     if (const char *checks = getenv("SORTCHECK_CHECKS")) {
-      const bool is_binary = checks && checks[0] == '0' && (checks[1] == 'b' || checks[1] == 'B');
+      const bool is_binary =
+          checks && checks[0] == '0' && (checks[1] == 'b' || checks[1] == 'B');
       opts.checks = strtoul(checks, NULL, is_binary ? 2 : 0);
       if (!opts.checks) {
         std::cerr << "sortcheck: all checks disabled in SORTCHECK_CHECKS\n";
@@ -98,7 +94,8 @@ inline const Options &get_options() {
     if (const char *out = getenv("SORTCHECK_OUTPUT")) {
       opts.out = open(out, O_WRONLY | O_CREAT | O_APPEND, 0777);
       if (opts.out < 0) {
-        std::cerr << "sortcheck: failed to open " << out << " (errno " << errno << ")\n";
+        std::cerr << "sortcheck: failed to open " << out << " (errno " << errno
+                  << ")\n";
         abort();
       }
     } else {
@@ -111,17 +108,18 @@ inline const Options &get_options() {
 }
 
 inline void report_error(const std::string &msg, const Options &opts) {
-#define LOG_ERR 3  // From syslog.h
+#define LOG_ERR 3 // From syslog.h
   if (opts.syslog)
     syslog(LOG_ERR, "%s", msg.c_str());
 #undef LOG_ERR
 
   char c = '\n';
-  if (write(opts.out, msg.c_str(), msg.size()) >= 0
-      && write(opts.out, &c, 1) >= 0) {
+  if (write(opts.out, msg.c_str(), msg.size()) >= 0 &&
+      write(opts.out, &c, 1) >= 0) {
     fsync(opts.out);
   } else {
-    std::cerr << "sortcheck: failed to write to " << opts.out << " (errno " << errno << ")\n";
+    std::cerr << "sortcheck: failed to write to " << opts.out << " (errno "
+              << errno << ")\n";
     abort();
   }
 
@@ -134,18 +132,19 @@ inline void report_error(const std::string &msg, const Options &opts) {
     exit(opts.exit_code);
 }
 
-template<typename _RandomAccessIterator, typename _Compare>
+template <typename _RandomAccessIterator, typename _Compare>
 inline void check_range(_RandomAccessIterator __first,
-                        _RandomAccessIterator __last,
-                        _Compare __comp,
+                        _RandomAccessIterator __last, _Compare __comp,
                         const char *file, int line) {
   const Options &opts = get_options();
 
   signed char cmp[32u][32u];
-  const size_t n = std::min(size_t(__last - __first), sizeof(cmp) / sizeof(cmp[0]));
+  const size_t n =
+      std::min(size_t(__last - __first), sizeof(cmp) / sizeof(cmp[0]));
   for (size_t i = 0; i < n; ++i) {
     for (size_t j = 0; j < n; ++j) {
-      cmp[i][j] = __comp(*(__first + i), *(__first + j)) ? SORTCHECK_GREATER : SORTCHECK_LESS;
+      cmp[i][j] = __comp(*(__first + i), *(__first + j)) ? SORTCHECK_GREATER
+                                                         : SORTCHECK_LESS;
     }
   }
 
@@ -173,8 +172,7 @@ inline void check_range(_RandomAccessIterator __first,
         if (cmp[i][j] != -cmp[j][i]) {
           std::ostringstream os;
           os << "sortcheck: " << file << ':' << line << ": "
-             << "non-asymmetric comparator at positions "
-             << i << " and " << j;
+             << "non-asymmetric comparator at positions " << i << " and " << j;
           report_error(os.str(), opts);
         }
       }
@@ -189,8 +187,7 @@ inline void check_range(_RandomAccessIterator __first,
             std::ostringstream os;
             os << "sortcheck: " << file << ':' << line << ": "
                << "non-transitive " << (cmp[i][j] ? "" : "equivalent ")
-               << "comparator at positions "
-               << i << ", " << j << " and " << k;
+               << "comparator at positions " << i << ", " << j << " and " << k;
             report_error(os.str(), opts);
           }
         }
@@ -199,18 +196,15 @@ inline void check_range(_RandomAccessIterator __first,
   }
 }
 
-template<typename _ForwardIterator, typename _Compare>
-inline void check_sorted(_ForwardIterator __first,
-                         _ForwardIterator __last,
-                         _Compare __comp,
-                         const char *file, int line) {
+template <typename _ForwardIterator, typename _Compare>
+inline void check_sorted(_ForwardIterator __first, _ForwardIterator __last,
+                         _Compare __comp, const char *file, int line) {
   const Options &opts = get_options();
   if (!(opts.checks & SORTCHECK_CHECK_SORTED) || __first == __last)
     return;
 
   unsigned pos = 0;
-  for (_ForwardIterator cur = __first, prev = cur++;
-       cur != __last;
+  for (_ForwardIterator cur = __first, prev = cur++; cur != __last;
        ++prev, ++cur, ++pos) {
     if (__comp(*cur, *prev)) {
       std::ostringstream os;
@@ -221,12 +215,10 @@ inline void check_sorted(_ForwardIterator __first,
   }
 }
 
-template<typename _ForwardIterator, typename _Tp, typename _Compare>
-inline void check_ordered(_ForwardIterator __first,
-                          _ForwardIterator __last,
-                          _Compare __comp,
-                          const _Tp &__val,
-                          const char *file, int line) {
+template <typename _ForwardIterator, typename _Tp, typename _Compare>
+inline void check_ordered(_ForwardIterator __first, _ForwardIterator __last,
+                          _Compare __comp, const _Tp &__val, const char *file,
+                          int line) {
   const Options &opts = get_options();
   if (!(opts.checks & SORTCHECK_CHECK_ORDERED) || __first == __last)
     return;
@@ -234,9 +226,9 @@ inline void check_ordered(_ForwardIterator __first,
   int prev = SORTCHECK_LESS;
   unsigned pos = 0;
   for (_ForwardIterator it = __first; it != __last; ++it, ++pos) {
-    const int dir = __comp(*it, __val) ? SORTCHECK_LESS :
-      __comp(__val, *it) ? SORTCHECK_GREATER :
-      SORTCHECK_EQUAL;
+    const int dir = __comp(*it, __val) ? SORTCHECK_LESS
+                                       : __comp(__val, *it) ? SORTCHECK_GREATER
+                                                            : SORTCHECK_EQUAL;
     if (dir < prev) {
       std::ostringstream os;
       os << "sortcheck: " << file << ':' << line << ": unsorted range "
@@ -249,12 +241,10 @@ inline void check_ordered(_ForwardIterator __first,
 
 // A simpler version of check_ordered when presense of __comp(__val, *iter)
 // is not guaranteed (e.g. in std::lower_bound).
-template<typename _ForwardIterator, typename _Tp, typename _Compare>
+template <typename _ForwardIterator, typename _Tp, typename _Compare>
 inline void check_ordered_simple(_ForwardIterator __first,
-                          _ForwardIterator __last,
-                          _Compare __comp,
-                          const _Tp &__val,
-                          const char *file, int line) {
+                                 _ForwardIterator __last, _Compare __comp,
+                                 const _Tp &__val, const char *file, int line) {
   const Options &opts = get_options();
   if (!(opts.checks & SORTCHECK_CHECK_ORDERED) || __first == __last)
     return;
@@ -275,47 +265,44 @@ inline void check_ordered_simple(_ForwardIterator __first,
 
 // binary_search overloads
 
-template<typename _ForwardIterator, typename _Tp, typename _Compare>
+template <typename _ForwardIterator, typename _Tp, typename _Compare>
 inline bool binary_search_checked(_ForwardIterator __first,
-                                  _ForwardIterator __last,
-                                  const _Tp &__val, _Compare __comp,
-                                  const char *file, int line) {
+                                  _ForwardIterator __last, const _Tp &__val,
+                                  _Compare __comp, const char *file, int line) {
   check_ordered(__first, __last, __comp, __val, file, line);
   return std::binary_search(__first, __last, __val, __comp);
 }
 
-template<typename _ForwardIterator, typename _Tp>
+template <typename _ForwardIterator, typename _Tp>
 inline bool binary_search_checked(_ForwardIterator __first,
-                                  _ForwardIterator __last,
-                                  const _Tp &__val,
+                                  _ForwardIterator __last, const _Tp &__val,
                                   const char *file, int line) {
   return binary_search_checked(__first, __last, __val, Compare(), file, line);
 }
 
-template<typename _ForwardIterator, typename _Tp, typename _Compare>
-inline bool binary_search_checked_full(_ForwardIterator __first,
-                                       _ForwardIterator __last,
-                                       const _Tp &__val, _Compare __comp,
-                                       bool do_check_range,
-                                       const char *file, int line) {
+template <typename _ForwardIterator, typename _Tp, typename _Compare>
+inline bool
+binary_search_checked_full(_ForwardIterator __first, _ForwardIterator __last,
+                           const _Tp &__val, _Compare __comp,
+                           bool do_check_range, const char *file, int line) {
   if (do_check_range)
     check_range(__first, __last, __comp, file, line);
   check_sorted(__first, __last, __comp, file, line);
-  return binary_search_checked(__first, __last, __val, __comp, file , line);
+  return binary_search_checked(__first, __last, __val, __comp, file, line);
 }
 
-template<typename _ForwardIterator, typename _Tp>
+template <typename _ForwardIterator, typename _Tp>
 inline bool binary_search_checked_full(_ForwardIterator __first,
                                        _ForwardIterator __last,
-                                       const _Tp &__val,
-                                       bool do_check_range,
+                                       const _Tp &__val, bool do_check_range,
                                        const char *file, int line) {
-  return binary_search_checked_full(__first, __last, __val, Compare(), do_check_range, file, line);
+  return binary_search_checked_full(__first, __last, __val, Compare(),
+                                    do_check_range, file, line);
 }
 
 // lower_bound overloads
 
-template<typename _ForwardIterator, typename _Tp, typename _Compare>
+template <typename _ForwardIterator, typename _Tp, typename _Compare>
 inline _ForwardIterator lower_bound_checked(_ForwardIterator __first,
                                             _ForwardIterator __last,
                                             const _Tp &__val, _Compare __comp,
@@ -324,38 +311,36 @@ inline _ForwardIterator lower_bound_checked(_ForwardIterator __first,
   return std::lower_bound(__first, __last, __val, __comp);
 }
 
-template<typename _ForwardIterator, typename _Tp>
-inline _ForwardIterator lower_bound_checked(_ForwardIterator __first,
-                                            _ForwardIterator __last,
-                                            const _Tp &__val,
-                                            const char *file, int line) {
+template <typename _ForwardIterator, typename _Tp>
+inline _ForwardIterator
+lower_bound_checked(_ForwardIterator __first, _ForwardIterator __last,
+                    const _Tp &__val, const char *file, int line) {
   return lower_bound_checked(__first, __last, __val, Compare(), file, line);
 }
 
-template<typename _ForwardIterator, typename _Tp, typename _Compare>
-inline _ForwardIterator lower_bound_checked_full(_ForwardIterator __first,
-                                                 _ForwardIterator __last,
-                                                 const _Tp &__val, _Compare __comp,
-                                                 bool do_check_range,
-                                                 const char *file, int line) {
+template <typename _ForwardIterator, typename _Tp, typename _Compare>
+inline _ForwardIterator
+lower_bound_checked_full(_ForwardIterator __first, _ForwardIterator __last,
+                         const _Tp &__val, _Compare __comp, bool do_check_range,
+                         const char *file, int line) {
   if (do_check_range)
     check_range(__first, __last, __comp, file, line);
   check_sorted(__first, __last, __comp, file, line);
-  return lower_bound_checked(__first, __last, __val, __comp, file , line);
+  return lower_bound_checked(__first, __last, __val, __comp, file, line);
 }
 
-template<typename _ForwardIterator, typename _Tp>
-inline _ForwardIterator lower_bound_checked_full(_ForwardIterator __first,
-                                                 _ForwardIterator __last,
-                                                 const _Tp &__val,
-                                                 bool do_check_range,
-                                                 const char *file, int line) {
-  return lower_bound_checked_full(__first, __last, __val, Compare(), do_check_range, file, line);
+template <typename _ForwardIterator, typename _Tp>
+inline _ForwardIterator
+lower_bound_checked_full(_ForwardIterator __first, _ForwardIterator __last,
+                         const _Tp &__val, bool do_check_range,
+                         const char *file, int line) {
+  return lower_bound_checked_full(__first, __last, __val, Compare(),
+                                  do_check_range, file, line);
 }
 
 // upper_bound overloads
 
-template<typename _ForwardIterator, typename _Tp, typename _Compare>
+template <typename _ForwardIterator, typename _Tp, typename _Compare>
 inline _ForwardIterator upper_bound_checked(_ForwardIterator __first,
                                             _ForwardIterator __last,
                                             const _Tp &__val, _Compare __comp,
@@ -365,123 +350,116 @@ inline _ForwardIterator upper_bound_checked(_ForwardIterator __first,
   return std::upper_bound(__first, __last, __val, __comp);
 }
 
-template<typename _ForwardIterator, typename _Tp>
-inline _ForwardIterator upper_bound_checked(_ForwardIterator __first,
-                                            _ForwardIterator __last,
-                                            const _Tp &__val,
-                                            const char *file, int line) {
+template <typename _ForwardIterator, typename _Tp>
+inline _ForwardIterator
+upper_bound_checked(_ForwardIterator __first, _ForwardIterator __last,
+                    const _Tp &__val, const char *file, int line) {
   return upper_bound_checked(__first, __last, __val, Compare(), file, line);
 }
 
-template<typename _ForwardIterator, typename _Tp, typename _Compare>
-inline _ForwardIterator upper_bound_checked_full(_ForwardIterator __first,
-                                                 _ForwardIterator __last,
-                                                 const _Tp &__val, _Compare __comp,
-                                                 bool do_check_range,
-                                                 const char *file, int line) {
+template <typename _ForwardIterator, typename _Tp, typename _Compare>
+inline _ForwardIterator
+upper_bound_checked_full(_ForwardIterator __first, _ForwardIterator __last,
+                         const _Tp &__val, _Compare __comp, bool do_check_range,
+                         const char *file, int line) {
   if (do_check_range)
     check_range(__first, __last, __comp, file, line);
   check_sorted(__first, __last, __comp, file, line);
-  return upper_bound_checked(__first, __last, __val, __comp, file , line);
+  return upper_bound_checked(__first, __last, __val, __comp, file, line);
 }
 
-template<typename _ForwardIterator, typename _Tp>
-inline _ForwardIterator upper_bound_checked_full(_ForwardIterator __first,
-                                                 _ForwardIterator __last,
-                                                 const _Tp &__val,
-                                                 bool do_check_range,
-                                                 const char *file, int line) {
-  return upper_bound_checked_full(__first, __last, __val, Compare(), do_check_range, file, line);
+template <typename _ForwardIterator, typename _Tp>
+inline _ForwardIterator
+upper_bound_checked_full(_ForwardIterator __first, _ForwardIterator __last,
+                         const _Tp &__val, bool do_check_range,
+                         const char *file, int line) {
+  return upper_bound_checked_full(__first, __last, __val, Compare(),
+                                  do_check_range, file, line);
 }
 
 // equal_range overloads
 
-template<typename _ForwardIterator, typename _Tp, typename _Compare>
-inline std::pair<_ForwardIterator, _ForwardIterator> equal_range_checked(_ForwardIterator __first,
-                                                                         _ForwardIterator __last,
-                                                                         const _Tp &__val, _Compare __comp,
-                                                                         const char *file, int line) {
+template <typename _ForwardIterator, typename _Tp, typename _Compare>
+inline std::pair<_ForwardIterator, _ForwardIterator>
+equal_range_checked(_ForwardIterator __first, _ForwardIterator __last,
+                    const _Tp &__val, _Compare __comp, const char *file,
+                    int line) {
   check_ordered_simple(__first, __last, __comp, __val, file, line);
   return std::equal_range(__first, __last, __val, __comp);
 }
 
-template<typename _ForwardIterator, typename _Tp>
-inline std::pair<_ForwardIterator, _ForwardIterator> equal_range_checked(_ForwardIterator __first,
-                                                                         _ForwardIterator __last,
-                                                                         const _Tp &__val,
-                                                                         const char *file, int line) {
+template <typename _ForwardIterator, typename _Tp>
+inline std::pair<_ForwardIterator, _ForwardIterator>
+equal_range_checked(_ForwardIterator __first, _ForwardIterator __last,
+                    const _Tp &__val, const char *file, int line) {
   return equal_range_checked(__first, __last, __val, Compare(), file, line);
 }
 
-template<typename _ForwardIterator, typename _Tp, typename _Compare>
-inline std::pair<_ForwardIterator, _ForwardIterator> equal_range_checked_full(_ForwardIterator __first,
-                                                                              _ForwardIterator __last,
-                                                                              const _Tp &__val, _Compare __comp,
-                                                                              bool do_check_range,
-                                                                              const char *file, int line) {
+template <typename _ForwardIterator, typename _Tp, typename _Compare>
+inline std::pair<_ForwardIterator, _ForwardIterator>
+equal_range_checked_full(_ForwardIterator __first, _ForwardIterator __last,
+                         const _Tp &__val, _Compare __comp, bool do_check_range,
+                         const char *file, int line) {
   if (do_check_range)
     check_range(__first, __last, __comp, file, line);
   check_sorted(__first, __last, __comp, file, line);
-  return equal_range_checked(__first, __last, __val, __comp, file , line);
+  return equal_range_checked(__first, __last, __val, __comp, file, line);
 }
 
-template<typename _ForwardIterator, typename _Tp>
-inline std::pair<_ForwardIterator, _ForwardIterator> equal_range_checked_full(_ForwardIterator __first,
-                                                                              _ForwardIterator __last,
-                                                                              const _Tp &__val,
-                                                                              bool do_check_range,
-                                                                              const char *file, int line) {
-  return equal_range_checked_full(__first, __last, __val, Compare(), do_check_range, file, line);
+template <typename _ForwardIterator, typename _Tp>
+inline std::pair<_ForwardIterator, _ForwardIterator>
+equal_range_checked_full(_ForwardIterator __first, _ForwardIterator __last,
+                         const _Tp &__val, bool do_check_range,
+                         const char *file, int line) {
+  return equal_range_checked_full(__first, __last, __val, Compare(),
+                                  do_check_range, file, line);
 }
 
 // sort overloads
 
-template<typename _RandomAccessIterator, typename _Compare>
+template <typename _RandomAccessIterator, typename _Compare>
 inline void sort_checked(_RandomAccessIterator __first,
-                         _RandomAccessIterator __last,
-                         _Compare __comp,
+                         _RandomAccessIterator __last, _Compare __comp,
                          const char *file, int line) {
   check_range(__first, __last, __comp, file, line);
   std::sort(__first, __last, __comp);
 }
 
-template<typename _RandomAccessIterator>
+template <typename _RandomAccessIterator>
 inline void sort_checked(_RandomAccessIterator __first,
-                         _RandomAccessIterator __last,
-                         const char *file, int line) {
+                         _RandomAccessIterator __last, const char *file,
+                         int line) {
   sort_checked(__first, __last, Compare(), file, line);
 }
 
 // stable_sort overloads
 
-template<typename _RandomAccessIterator, typename _Compare>
+template <typename _RandomAccessIterator, typename _Compare>
 inline void stable_sort_checked(_RandomAccessIterator __first,
-                         _RandomAccessIterator __last,
-                         _Compare __comp,
-                         const char *file, int line) {
+                                _RandomAccessIterator __last, _Compare __comp,
+                                const char *file, int line) {
   check_range(__first, __last, __comp, file, line);
   std::stable_sort(__first, __last, __comp);
 }
 
-template<typename _RandomAccessIterator>
+template <typename _RandomAccessIterator>
 inline void stable_sort_checked(_RandomAccessIterator __first,
-                         _RandomAccessIterator __last,
-                         const char *file, int line) {
+                                _RandomAccessIterator __last, const char *file,
+                                int line) {
   stable_sort_checked(__first, __last, Compare(), file, line);
 }
 
 // max_element overloads
 
-template<typename _RandomAccessIterator, typename _Compare>
-inline _RandomAccessIterator max_element_checked(_RandomAccessIterator __first,
-                                                 _RandomAccessIterator __last,
-                                                 _Compare __comp,
-                                                 const char *file, int line) {
+template <typename _RandomAccessIterator, typename _Compare>
+inline _RandomAccessIterator
+max_element_checked(_RandomAccessIterator __first, _RandomAccessIterator __last,
+                    _Compare __comp, const char *file, int line) {
   check_range(__first, __last, __comp, file, line);
   return std::max_element(__first, __last, __comp);
 }
 
-template<typename _RandomAccessIterator>
+template <typename _RandomAccessIterator>
 inline _RandomAccessIterator max_element_checked(_RandomAccessIterator __first,
                                                  _RandomAccessIterator __last,
                                                  const char *file, int line) {
@@ -490,16 +468,15 @@ inline _RandomAccessIterator max_element_checked(_RandomAccessIterator __first,
 
 // min_element overloads
 
-template<typename _RandomAccessIterator, typename _Compare>
-inline _RandomAccessIterator min_element_checked(_RandomAccessIterator __first,
-                                                 _RandomAccessIterator __last,
-                                                 _Compare __comp,
-                                                 const char *file, int line) {
+template <typename _RandomAccessIterator, typename _Compare>
+inline _RandomAccessIterator
+min_element_checked(_RandomAccessIterator __first, _RandomAccessIterator __last,
+                    _Compare __comp, const char *file, int line) {
   check_range(__first, __last, __comp, file, line);
   return std::min_element(__first, __last, __comp);
 }
 
-template<typename _RandomAccessIterator>
+template <typename _RandomAccessIterator>
 inline _RandomAccessIterator min_element_checked(_RandomAccessIterator __first,
                                                  _RandomAccessIterator __last,
                                                  const char *file, int line) {
@@ -508,8 +485,7 @@ inline _RandomAccessIterator min_element_checked(_RandomAccessIterator __first,
 
 // std::map/set checks
 
-template<typename Map>
-Map &check_map(Map &m, const char *file, int line) {
+template <typename Map> Map &check_map(Map &m, const char *file, int line) {
   std::vector<typename Map::key_type> keys;
   for (typename Map::iterator i = m.begin(), end = m.end(); i != end; ++i)
     keys.push_back(i->first);
@@ -517,20 +493,17 @@ Map &check_map(Map &m, const char *file, int line) {
   return m;
 }
 
-template<typename Map>
-Map *check_map(Map *m, const char *file, int line) {
+template <typename Map> Map *check_map(Map *m, const char *file, int line) {
   return &check_map(*m, file, line);
 }
 
-template<typename Set>
-Set &check_set(Set &m, const char *file, int line) {
+template <typename Set> Set &check_set(Set &m, const char *file, int line) {
   std::vector<typename Set::key_type> keys(m.begin(), m.end());
   check_range(keys.begin(), keys.end(), m.key_comp(), file, line);
   return m;
 }
 
-template<typename Set>
-Set *check_set(Set *m, const char *file, int line) {
+template <typename Set> Set *check_set(Set *m, const char *file, int line) {
   return &check_set(*m, file, line);
 }
 

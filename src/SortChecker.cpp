@@ -62,7 +62,8 @@ class Visitor : public RecursiveASTVisitor<Visitor> {
   }
 
   // Locate operator*() in D if it's a CXX class
-  CXXMethodDecl *findOperator(CXXRecordDecl *RD, OverloadedOperatorKind OpKind) const {
+  CXXMethodDecl *findOperator(CXXRecordDecl *RD,
+                              OverloadedOperatorKind OpKind) const {
     for (auto *Method : RD->methods()) {
       if (Method->getOverloadedOperator() == OpKind) {
         return Method;
@@ -240,7 +241,6 @@ class Visitor : public RecursiveASTVisitor<Visitor> {
   }
 
 public:
-
   Visitor(ASTContext &Ctx, Rewriter &RW) : Ctx(Ctx), RW(RW) {}
 
 #if 0
