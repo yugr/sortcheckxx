@@ -40,14 +40,6 @@ struct Compare {
   }
 };
 
-template <typename Compare> struct CompareSwapped {
-  Compare &comp;
-  CompareSwapped(Compare &c) : comp(c) {}
-  template <typename A, typename B> bool operator()(A a, B b) {
-    return comp(b, a);
-  }
-};
-
 struct Options {
   bool abort;
   int verbose;
@@ -339,6 +331,14 @@ lower_bound_checked_full(_ForwardIterator __first, _ForwardIterator __last,
 }
 
 // upper_bound overloads
+
+template <typename Compare> struct CompareSwapped {
+  Compare &comp;
+  CompareSwapped(Compare &c) : comp(c) {}
+  template <typename A, typename B> bool operator()(A a, B b) {
+    return !comp(b, a);
+  }
+};
 
 template <typename _ForwardIterator, typename _Tp, typename _Compare>
 inline _ForwardIterator upper_bound_checked(_ForwardIterator __first,
