@@ -216,6 +216,7 @@ class Visitor : public RecursiveASTVisitor<Visitor> {
         .Default(CMP_FUNC_UNKNOWN);
   }
 
+  // TODO: support types inherited from containers?
   Container getContainerType(const RecordDecl *D) const {
     if (getRootNamespace(D) != "std")
       return CONTAINER_UNKNOWN;
@@ -373,14 +374,20 @@ public:
             break;
         }
 
-        auto *This = CE->getImplicitObjectArgument();
+        auto *ObjExpr = CE->getImplicitObjectArgument();
+        auto *ThisExpr = dyn_cast<CXXThisExpr>(ObjExpr->IgnoreImpCasts());
         std::string Call = "sortcheck::check_";
         Call += ContainerInfo[Cont].Suffix;
         Call += "(";
-        RW.InsertTextBefore(This->getBeginLoc(), Call.c_str());
-        auto EndLoc = Lexer::getLocForEndOfToken(This->getEndLoc(), 0, SM,
-                                                 Ctx.getLangOpts());
-        RW.InsertTextAfter(EndLoc, ", __FILE__, __LINE__)");
+        if (ThisExpr && ThisExpr->isImplicit()) {
+          Call += "this, __FILE__, __LINE__)->";
+          RW.InsertTextBefore(CE->getBeginLoc(), Call.c_str());
+        } else {
+          RW.InsertTextBefore(ObjExpr->getBeginLoc(), Call.c_str());
+          auto EndLoc = Lexer::getLocForEndOfToken(ObjExpr->getEndLoc(), 0, SM,
+                                                   Ctx.getLangOpts());
+          RW.InsertTextAfter(EndLoc, ", __FILE__, __LINE__)");
+        }
         ChangedFiles.insert(SM.getFileID(Loc));
       } while (0);
     }
