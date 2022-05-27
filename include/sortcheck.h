@@ -100,10 +100,9 @@ inline const Options &get_options() {
 }
 
 inline void report_error(const std::string &msg, const Options &opts) {
-#define LOG_ERR 3 // From syslog.h
+  // LOG_ERR==3 from syslog.h conflicts with some packages
   if (opts.syslog)
-    syslog(LOG_ERR, "%s", msg.c_str());
-#undef LOG_ERR
+    syslog(3, "%s", msg.c_str());
 
   char c = '\n';
   if (write(opts.out, msg.c_str(), msg.size()) >= 0 &&
