@@ -1,0 +1,41 @@
+#ifndef SORTCHECK_MULTIMAP_H
+#define SORTCHECK_MULTIMAP_H
+
+#define multimap multimap_impl
+#include_next <multimap>
+#undef multimap
+
+#include <sortcheck.h>
+
+namespace std {
+
+template <class Key, class T, class Compare = std::less<Key>,
+          class Allocator = std::allocator<std::pair<const Key, T>>>
+class multimap : public multimap_impl<Key, T, Compare, Allocator> {
+  typedef multimap_impl<Key, T, Compare, Allocator> _Parent;
+
+public:
+#if __cplusplus >= 201100L
+  using _Parent::multimap_impl;
+#else
+  multimap() {}
+  explicit multimap(const Compare &comp, const Allocator &alloc = Allocator())
+      : multimap_impl(comp, alloc) {}
+  template <class InputIt>
+  multimap(InputIt first, InputIt last, const Compare &comp = Compare(),
+           const Allocator &alloc = Allocator())
+      : multimap_impl(first, last, comp, alloc) {}
+  multimap(const multimap &other) : multimap_impl(other) {}
+#endif
+
+  void clear() SORTCHECK_NOEXCEPT(0) {
+    sortcheck::check_multimap(this, "multimap", __LINE__);
+    multimap_impl<Key, T, Compare, Allocator>::clear();
+  }
+
+  ~multimap() { sortcheck::check_multimap(this, "multimap", __LINE__); }
+};
+
+} // namespace std
+
+#endif

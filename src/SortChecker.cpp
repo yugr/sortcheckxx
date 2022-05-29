@@ -172,15 +172,6 @@ class Visitor : public RecursiveASTVisitor<Visitor> {
     CMP_FUNC_NUM
   };
 
-  enum Container {
-    CONTAINER_UNKNOWN = 0,
-    CONTAINER_SET,
-    CONTAINER_MAP,
-    CONTAINER_MULTISET,
-    CONTAINER_MULTIMAP,
-    CONTAINER_NUM
-  };
-
   LLVM_NODISCARD bool isKindOfBinarySearch(CompareFunction func) const {
     switch (func) {
     case CMP_FUNC_BINARY_SEARCH:
@@ -214,19 +205,6 @@ class Visitor : public RecursiveASTVisitor<Visitor> {
         .Case("std::max_element", CMP_FUNC_MAX_ELEMENT)
         .Case("std::min_element", CMP_FUNC_MIN_ELEMENT)
         .Default(CMP_FUNC_UNKNOWN);
-  }
-
-  // TODO: support types inherited from containers?
-  Container getContainerType(const RecordDecl *D) const {
-    if (getRootNamespace(D) != "std")
-      return CONTAINER_UNKNOWN;
-    auto Name = D->getName();
-    return llvm::StringSwitch<Container>(Name)
-        .Case("map", CONTAINER_MAP)
-        .Case("set", CONTAINER_SET)
-        .Case("multimap", CONTAINER_MULTIMAP)
-        .Case("multiset", CONTAINER_MULTISET)
-        .Default(CONTAINER_UNKNOWN);
   }
 
   bool isBuiltinCompare(QualType KeyTy, bool HasDefaultCmp) const {
@@ -331,67 +309,7 @@ public:
           RW.InsertTextBefore(Loc, *CheckRangeFlag ? ", true" : ", false");
         }
       } while (0);
-    } else if (const auto *CE = dyn_cast<CXXMemberCallExpr>(E)) {
-      do {
-        const auto *RD = CE->getRecordDecl();
-        auto Cont = getContainerType(RD);
-        if (!Cont)
-          break;
-
-        const auto *MD = CE->getMethodDecl();
-        if (MD->getName() != "clear")
-          break;
-
-        auto LocStr = Loc.printToString(SM);
-        if (Verbose) {
-          llvm::errs() << "Found relevant function " << MD->getName()
-                       << "() at " << LocStr << ":\n";
-          Callee->dump();
-        }
-
-        static struct {
-          const char *Name;
-          const char *Suffix;
-          unsigned CompareArg;
-        } ContainerInfo[CONTAINER_NUM] = {{nullptr, nullptr, 0},
-                                          {"set", "set", 1},
-                                          {"map", "map", 2},
-                                          {"multiset", "set", 1},
-                                          {"multimap", "map", 2}};
-
-        auto CompareArg = ContainerInfo[Cont].CompareArg;
-
-        if (auto *SpecDecl = dyn_cast<ClassTemplateSpecializationDecl>(RD)) {
-          auto &ArgList = SpecDecl->getTemplateArgs();
-
-          auto KeyTy = ArgList.get(0).getAsType();
-          auto CmpTy = ArgList.get(CompareArg).getAsType();
-
-          const bool HasDefaultCmp = isStdLess(CmpTy);
-          const bool IsBuiltinCompare = isBuiltinCompare(KeyTy, HasDefaultCmp);
-
-          if (IsBuiltinCompare)
-            break;
-        }
-
-        auto *ObjExpr = CE->getImplicitObjectArgument();
-        auto *ThisExpr = dyn_cast<CXXThisExpr>(ObjExpr->IgnoreImpCasts());
-        std::string Call = "sortcheck::check_";
-        Call += ContainerInfo[Cont].Suffix;
-        Call += "(";
-        if (ThisExpr && ThisExpr->isImplicit()) {
-          Call += "this, __FILE__, __LINE__)->";
-          RW.InsertTextBefore(CE->getBeginLoc(), Call.c_str());
-        } else {
-          RW.InsertTextBefore(ObjExpr->getBeginLoc(), Call.c_str());
-          auto EndLoc = Lexer::getLocForEndOfToken(ObjExpr->getEndLoc(), 0, SM,
-                                                   Ctx.getLangOpts());
-          RW.InsertTextAfter(EndLoc, ", __FILE__, __LINE__)");
-        }
-        ChangedFiles.insert(SM.getFileID(Loc));
-      } while (0);
     }
-    // TODO: instrument std::map dtors
     return true;
   }
 

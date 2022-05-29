@@ -484,26 +484,16 @@ inline _RandomAccessIterator min_element_checked(_RandomAccessIterator __first,
 
 // std::map/set checks
 
-template <typename Map> Map &check_map(Map &m, const char *file, int line) {
+template <typename Map> void check_map(Map *m, const char *file, int line) {
   std::vector<typename Map::key_type> keys;
-  for (typename Map::iterator i = m.begin(), end = m.end(); i != end; ++i)
+  for (typename Map::iterator i = m->begin(), end = m->end(); i != end; ++i)
     keys.push_back(i->first);
-  check_range(keys.begin(), keys.end(), m.key_comp(), file, line);
-  return m;
+  check_range(keys.begin(), keys.end(), m->key_comp(), file, line);
 }
 
-template <typename Map> Map *check_map(Map *m, const char *file, int line) {
-  return &check_map(*m, file, line);
-}
-
-template <typename Set> Set &check_set(Set &m, const char *file, int line) {
-  std::vector<typename Set::key_type> keys(m.begin(), m.end());
-  check_range(keys.begin(), keys.end(), m.key_comp(), file, line);
-  return m;
-}
-
-template <typename Set> Set *check_set(Set *m, const char *file, int line) {
-  return &check_set(*m, file, line);
+template <typename Set> void check_set(Set *m, const char *file, int line) {
+  std::vector<typename Set::key_type> keys(m->begin(), m->end());
+  check_range(keys.begin(), keys.end(), m->key_comp(), file, line);
 }
 
 } // namespace sortcheck

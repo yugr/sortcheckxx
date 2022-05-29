@@ -1,0 +1,41 @@
+#ifndef SORTCHECK_MULTISET_H
+#define SORTCHECK_MULTISET_H
+
+#define multiset multiset_impl
+#include_next <multiset>
+#undef multiset
+
+#include <sortcheck.h>
+
+namespace std {
+
+template <class Key, class Compare = std::less<Key>,
+          class Allocator = std::allocator<Key>>
+class multiset : public multiset_impl<Key, Compare, Allocator> {
+  typedef multiset_impl<Key, Compare, Allocator> _Parent;
+
+public:
+#if __cplusplus >= 201100L
+  using _Parent::multiset_impl;
+#else
+  multiset() {}
+  explicit multiset(const Compare &comp, const Allocator &alloc = Allocator())
+      : multiset_impl(comp, alloc) {}
+  template <class InputIt>
+  multiset(InputIt first, InputIt last, const Compare &comp = Compare(),
+           const Allocator &alloc = Allocator())
+      : multiset_impl(first, last, comp, alloc) {}
+  multiset(const multiset &other) : multiset_impl(other) {}
+#endif
+
+  void clear() SORTCHECK_NOEXCEPT(0) {
+    sortcheck::check_multiset(this, "multiset", __LINE__);
+    multiset_impl<Key, Compare, Allocator>::clear();
+  }
+
+  ~multiset() { sortcheck::check_multiset(this, "multiset", __LINE__); }
+};
+
+} // namespace std
+
+#endif

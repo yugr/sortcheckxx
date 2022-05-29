@@ -1,1 +1,1 @@
-sortcheck: array.cpp:20: irreflexive comparator at position 0
+sortcheck: set:32: irreflexive comparator at position 0

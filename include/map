@@ -1,0 +1,41 @@
+#ifndef SORTCHECK_MAP_H
+#define SORTCHECK_MAP_H
+
+#define map map_impl
+#include_next <map>
+#undef map
+
+#include <sortcheck.h>
+
+namespace std {
+
+template <class Key, class T, class Compare = std::less<Key>,
+          class Allocator = std::allocator<std::pair<const Key, T>>>
+class map : public map_impl<Key, T, Compare, Allocator> {
+  typedef map_impl<Key, T, Compare, Allocator> _Parent;
+
+public:
+#if __cplusplus >= 201100L
+  using _Parent::map_impl;
+#else
+  map() {}
+  explicit map(const Compare &comp, const Allocator &alloc = Allocator())
+      : map_impl(comp, alloc) {}
+  template <class InputIt>
+  map(InputIt first, InputIt last, const Compare &comp = Compare(),
+      const Allocator &alloc = Allocator())
+      : map_impl(first, last, comp, alloc) {}
+  map(const map &other) : map_impl(other) {}
+#endif
+
+  void clear() SORTCHECK_NOEXCEPT(0) {
+    sortcheck::check_map(this, "map", __LINE__);
+    _Parent::clear();
+  }
+
+  ~map() { sortcheck::check_map(this, "map", __LINE__); }
+};
+
+} // namespace std
+
+#endif

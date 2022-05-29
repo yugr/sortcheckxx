@@ -1,0 +1,41 @@
+#ifndef SORTCHECK_SET_H
+#define SORTCHECK_SET_H
+
+#define set set_impl
+#include_next <set>
+#undef set
+
+#include <sortcheck.h>
+
+namespace std {
+
+template <class Key, class Compare = std::less<Key>,
+          class Allocator = std::allocator<Key>>
+class set : public set_impl<Key, Compare, Allocator> {
+  typedef set_impl<Key, Compare, Allocator> _Parent;
+
+public:
+#if __cplusplus >= 201100L
+  using _Parent::set_impl;
+#else
+  set() {}
+  explicit set(const Compare &comp, const Allocator &alloc = Allocator())
+      : set_impl(comp, alloc) {}
+  template <class InputIt>
+  set(InputIt first, InputIt last, const Compare &comp = Compare(),
+      const Allocator &alloc = Allocator())
+      : set_impl(first, last, comp, alloc) {}
+  set(const set &other) : set_impl(other) {}
+#endif
+
+  void clear() SORTCHECK_NOEXCEPT(0) {
+    sortcheck::check_set(this, "set", __LINE__);
+    set_impl<Key, Compare, Allocator>::clear();
+  }
+
+  ~set() { sortcheck::check_set(this, "set", __LINE__); }
+};
+
+} // namespace std
+
+#endif
