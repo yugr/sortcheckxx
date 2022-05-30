@@ -332,8 +332,8 @@ lower_bound_checked_full(_ForwardIterator __first, _ForwardIterator __last,
 // upper_bound overloads
 
 template <typename Compare> struct CompareSwapped {
-  Compare &comp;
-  CompareSwapped(Compare &c) : comp(c) {}
+  Compare comp;
+  CompareSwapped(Compare c) : comp(c) {}
   template <typename A, typename B> bool operator()(A a, B b) {
     return !comp(b, a);
   }
@@ -484,16 +484,26 @@ inline _RandomAccessIterator min_element_checked(_RandomAccessIterator __first,
 
 // std::map/set checks
 
+template <typename Compare> struct ComparePointers {
+  Compare comp;
+  ComparePointers(Compare c) : comp(c) {}
+  template <typename A, typename B> bool operator()(A *a, B *b) {
+    return comp(*a, *b);
+  }
+};
+
 template <typename Map> void check_map(Map *m, const char *file, int line) {
-  std::vector<typename Map::key_type> keys;
+  std::vector<const typename Map::key_type *> keys;
   for (typename Map::iterator i = m->begin(), end = m->end(); i != end; ++i)
-    keys.push_back(i->first);
-  check_range(keys.begin(), keys.end(), m->key_comp(), file, line);
+    keys.push_back(&i->first);
+  check_range(keys.begin(), keys.end(), ComparePointers<typename Map::key_compare>(m->key_comp()), file, line);
 }
 
 template <typename Set> void check_set(Set *m, const char *file, int line) {
-  std::vector<typename Set::key_type> keys(m->begin(), m->end());
-  check_range(keys.begin(), keys.end(), m->key_comp(), file, line);
+  std::vector<const typename Set::key_type *> keys;
+  for (typename Set::iterator i = m->begin(), end = m->end(); i != end; ++i)
+    keys.push_back(&*i);
+  check_range(keys.begin(), keys.end(), ComparePointers<typename Set::key_compare>(m->key_comp()), file, line);
 }
 
 } // namespace sortcheck
