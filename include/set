@@ -1,6 +1,9 @@
 #ifndef SORTCHECK_SET_H
 #define SORTCHECK_SET_H
 
+// Do not warn on include_next
+#pragma GCC system_header
+
 #define set set_impl
 #include_next <set>
 #undef set

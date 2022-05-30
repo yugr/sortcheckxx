@@ -1,6 +1,9 @@
 #ifndef SORTCHECK_MULTISET_H
 #define SORTCHECK_MULTISET_H
 
+// Do not warn on include_next
+#pragma GCC system_header
+
 #define multiset multiset_impl
 #include_next <multiset>
 #undef multiset

@@ -1,6 +1,9 @@
 #ifndef SORTCHECK_MULTIMAP_H
 #define SORTCHECK_MULTIMAP_H
 
+// Do not warn on include_next
+#pragma GCC system_header
+
 #define multimap multimap_impl
 #include_next <multimap>
 #undef multimap

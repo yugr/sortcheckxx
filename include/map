@@ -1,6 +1,9 @@
 #ifndef SORTCHECK_MAP_H
 #define SORTCHECK_MAP_H
 
+// Do not warn on include_next
+#pragma GCC system_header
+
 #define map map_impl
 #include_next <map>
 #undef map
