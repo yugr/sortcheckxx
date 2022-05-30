@@ -10,7 +10,7 @@
 namespace std {
 
 template <class Key, class T, class Compare = std::less<Key>,
-          class Allocator = std::allocator<std::pair<const Key, T>>>
+          class Allocator = std::allocator<std::pair<const Key, T> > >
 class map : public map_impl<Key, T, Compare, Allocator> {
   typedef map_impl<Key, T, Compare, Allocator> _Parent;
 
@@ -20,12 +20,12 @@ public:
 #else
   map() {}
   explicit map(const Compare &comp, const Allocator &alloc = Allocator())
-      : map_impl(comp, alloc) {}
+      : _Parent(comp, alloc) {}
   template <class InputIt>
   map(InputIt first, InputIt last, const Compare &comp = Compare(),
       const Allocator &alloc = Allocator())
-      : map_impl(first, last, comp, alloc) {}
-  map(const map &other) : map_impl(other) {}
+      : _Parent(first, last, comp, alloc) {}
+  map(const map &other) : _Parent(other) {}
 #endif
 
   void clear() SORTCHECK_NOEXCEPT(0) {

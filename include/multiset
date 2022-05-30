@@ -10,7 +10,7 @@
 namespace std {
 
 template <class Key, class Compare = std::less<Key>,
-          class Allocator = std::allocator<Key>>
+          class Allocator = std::allocator<Key> >
 class multiset : public multiset_impl<Key, Compare, Allocator> {
   typedef multiset_impl<Key, Compare, Allocator> _Parent;
 
@@ -20,12 +20,12 @@ public:
 #else
   multiset() {}
   explicit multiset(const Compare &comp, const Allocator &alloc = Allocator())
-      : multiset_impl(comp, alloc) {}
+      : _Parent(comp, alloc) {}
   template <class InputIt>
   multiset(InputIt first, InputIt last, const Compare &comp = Compare(),
            const Allocator &alloc = Allocator())
-      : multiset_impl(first, last, comp, alloc) {}
-  multiset(const multiset &other) : multiset_impl(other) {}
+      : _Parent(first, last, comp, alloc) {}
+  multiset(const multiset &other) : _Parent(other) {}
 #endif
 
   void clear() SORTCHECK_NOEXCEPT(0) {

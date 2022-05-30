@@ -10,7 +10,7 @@
 namespace std {
 
 template <class Key, class T, class Compare = std::less<Key>,
-          class Allocator = std::allocator<std::pair<const Key, T>>>
+          class Allocator = std::allocator<std::pair<const Key, T> > >
 class multimap : public multimap_impl<Key, T, Compare, Allocator> {
   typedef multimap_impl<Key, T, Compare, Allocator> _Parent;
 
@@ -20,12 +20,12 @@ public:
 #else
   multimap() {}
   explicit multimap(const Compare &comp, const Allocator &alloc = Allocator())
-      : multimap_impl(comp, alloc) {}
+      : _Parent(comp, alloc) {}
   template <class InputIt>
   multimap(InputIt first, InputIt last, const Compare &comp = Compare(),
            const Allocator &alloc = Allocator())
-      : multimap_impl(first, last, comp, alloc) {}
-  multimap(const multimap &other) : multimap_impl(other) {}
+      : _Parent(first, last, comp, alloc) {}
+  multimap(const multimap &other) : _Parent(other) {}
 #endif
 
   void clear() SORTCHECK_NOEXCEPT(0) {

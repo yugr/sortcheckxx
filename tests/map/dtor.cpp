@@ -6,7 +6,7 @@
 #include <map>
 
 struct Compare {
-  bool operator()(int lhs, int rhs) {
+  bool operator()(int lhs, int rhs) const {
     return lhs == rhs;
   }
 };
