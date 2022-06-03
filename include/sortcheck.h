@@ -147,7 +147,7 @@ inline void check_range(_RandomAccessIterator __first,
   }
 
   if (opts.checks & SORTCHECK_CHECK_REFLEXIVITY) {
-    for (size_t i = 0; i < size_t(__last - __first); ++i) {
+    for (size_t i = 0; i < n; ++i) {
       if (cmp[i][i] != SORTCHECK_EQUAL) {
         std::ostringstream os;
         os << "sortcheck: " << file << ':' << line << ": "
