@@ -38,6 +38,7 @@ SortChecker instruments input source files by replacing calls to compare-related
 of Strict Weak Ordering axioms at runtime.\n");
 
 llvm::cl::opt<bool> Verbose("v", llvm::cl::desc("Turn on verbose output"));
+llvm::cl::opt<bool> IgnoreParseErrors("ignore-parse-errors", llvm::cl::desc("Ignore parser errors"));
 
 class Visitor : public RecursiveASTVisitor<Visitor> {
   ASTContext &Ctx;
@@ -344,7 +345,8 @@ public:
   std::unique_ptr<ASTConsumer>
   CreateASTConsumer(CompilerInstance &CI,
                     LLVM_ATTRIBUTE_UNUSED llvm::StringRef InFile) override {
-    CI.getDiagnostics().setClient(new IgnoringDiagConsumer());
+    if (IgnoreParseErrors)
+      CI.getDiagnostics().setClient(new IgnoringDiagConsumer());
     return std::make_unique<Consumer>(CI);
   }
 

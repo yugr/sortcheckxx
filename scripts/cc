@@ -25,6 +25,6 @@ OPTS=$(echo "$@" | sed -e 's/[^ ]\+\.\(cc\|cpp\|c\|cxx\|C\)\( \|$\)//g')
 if test -n "$FILES" && ! (echo -- "$OPTS" | grep -q -- '-E\>'); then
   # Strip unhandled flags
   OPTS=$(echo $OPTS | sed -e 's/-f\(lifetime-dse\|abi-version\|var-tracking\)[^ ]\+//g')
-  $ROOT/bin/SortChecker $FILES -- $OPTS -w -fpermissive -Wno-error
+  $ROOT/bin/SortChecker --ignore-parse-errors $FILES -- $OPTS -w -fpermissive -Wno-error
 fi
 /usr/bin/$exe "$@" -I$ROOT/include
