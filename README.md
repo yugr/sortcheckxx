@@ -15,8 +15,9 @@ SortChecker++ is an extension of [SortChecker](https://github.com/yugr/sortcheck
 The tool has been tested on LLVM 6.0 (Ubuntu 18.04) and 10.0 (Ubuntu 20.04).
 
 List of found issues:
-* [libosmium: Missing prepare\_for\_lookup in test\_members\_database.cpp](https://github.com/osmcode/libosmium/issues/351) (fixed)
-* [zeroc-ice: Unsorted array in lookupKwd](https://github.com/zeroc-ice/ice/issues/1362)
+* [Libosmium: Missing prepare\_for\_lookup in test\_members\_database.cpp](https://github.com/osmcode/libosmium/issues/351) (fixed)
+* [ZeroC Ice: Unsorted array in lookupKwd](https://github.com/zeroc-ice/ice/issues/1362)
+* [GiNaC: Potential issue in comparator in test\_antipode](https://www.ginac.de/pipermail/ginac-list/2022-June/002390.html)
 
 # How to build
 
