@@ -15,8 +15,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-18.04, ubuntu-20.04, ubuntu-latest]
-        cxx: [g++, clang++]
+        os: [ubuntu-latest]
+        cxx: [g++]
     runs-on: ${{ matrix.os }}
     env:
       CXX: ${{ matrix.cxx }}
@@ -24,52 +24,7 @@ jobs:
     - uses: actions/checkout@v2
     - name: Install deps
       run: scripts/install_deps.sh
-    - name: Run tests
-      run: scripts/travis.sh
-  CSA:
-    runs-on: ubuntu-latest
-    env:
-      CXX: clang
-    steps:
-    - uses: actions/checkout@v2
-    - name: Install deps
-      run: |
-        scripts/install_deps.sh
-        sudo apt-get install clang-tools
-    - name: Run tests
-      run: scan-build --keep-going --status-bugs scripts/travis.sh
-  Asan:
-    runs-on: ubuntu-latest
-    env:
-      CXX: g++  # Clang's interceptor runs comparator prior to our interceptor and ruins some tests
-      ASAN: 1
-    steps:
-    - uses: actions/checkout@v2
-    - name: Install deps
-      run: scripts/install_deps.sh
-    - name: Run tests
-      run: scripts/travis.sh
-  UBsan:
-    runs-on: ubuntu-latest
-    env:
-      CXX: clang++
-      UBSAN: 1
-    steps:
-    - uses: actions/checkout@v2
-    - name: Install deps
-      run: scripts/install_deps.sh
-    - name: Run tests
-      run: scripts/travis.sh
-  Coverage:
-    needs: Tests
-    runs-on: ubuntu-latest
-    environment: secrets
-    env:
-      COVERAGE: 1
-      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
-    steps:
-    - uses: actions/checkout@v2
-    - name: Install deps
-      run: scripts/install_deps.sh
+    - name: Setup tmate session
+      uses: mxschmitt/action-tmate@v3
     - name: Run tests
       run: scripts/travis.sh
