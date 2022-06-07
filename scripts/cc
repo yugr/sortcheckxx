@@ -24,9 +24,9 @@ ROOT=$(dirname $0)/..
 FILES=$(echo "$@" | grep -o '[^ ]\+\.\(cc\|cpp\|c\|cxx\|C\)\( \|$\)' || true)
 OPTS=$(echo "$@" | sed -e 's/[^ ]\+\.\(cc\|cpp\|c\|cxx\|C\)\( \|$\)//g')
 
-if test -n "$FILES" && ! (echo -- "$OPTS" | grep -q -- '-E\>'); then
+if test -n "$FILES" && ! (echo -- "$OPTS" | grep -q -- '-\([EM]\|MM\)\>'); then
   # Strip unhandled flags (-flto=jobserver causes clang to malfunction)
-  OPTS=$(echo $OPTS | sed -e 's/-f\(lifetime-dse\|abi-version\|var-tracking\|lto\)[^ ]\+//g')
+  OPTS=$(echo $OPTS | sed -e 's/-f\(lifetime-dse\|abi-version\|var-tracking\|lto\)[^ ]*//g')
   # Add std includes
   INCLUDES=$(clang -x $type -E -Wp,-v /dev/null 2>&1 | awk '/^ \//{ORS=" "; print "-I" $1}')
   # Disable all warnings
