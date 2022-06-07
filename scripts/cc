@@ -29,6 +29,11 @@ if test -n "$FILES" && ! (echo -- "$OPTS" | grep -q -- '-\([EM]\|MM\)\>'); then
   OPTS=$(echo $OPTS | sed -e 's/-f\(lifetime-dse\|abi-version\|var-tracking\|lto\)[^ ]*//g')
   # Add std includes
   INCLUDES=$(clang -x $type -E -Wp,-v /dev/null 2>&1 | awk '/^ \//{ORS=" "; print "-I" $1}')
+  if test -n "${GITHUB_ACTIONS:-}" && grep -q 20.04 /etc/lsb-release; then
+    # FIXME: for some reason presense of clang's compiler dirs
+    # ruin search for correct stdint.h in GH actions environment
+    INCLUDES=$(echo $INCLUDES | sed 's/[^ ]*clang[^ ]*//')
+  fi
   # Disable all warnings
   WARNS='-fpermissive -w -Wno-everything -Wno-error'
   if ! $ROOT/bin/SortChecker $FILES -- $OPTS -I$ROOT/include $INCLUDES $WARNS; then
