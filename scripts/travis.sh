@@ -11,6 +11,13 @@ if test -n "${TRAVIS:-}" -o -n "${GITHUB_ACTIONS:-}"; then
   set -x
 fi
 
+if test -n "${GITHUB_ACTIONS:-}" && grep -q 20.04 /etc/lsb-release; then
+  # Versions of clang and libclang in Github's Ubuntu 20.04 mismatch
+  # which causes header search issues so fix this
+  V=$(llvm-config --version | awk -F. '{print $1}')
+  sudo ln -fs /usr/bin/clang-$V /usr/bin/clang
+fi
+
 cd $(dirname $0)/..
 
 export ASAN_OPTIONS='detect_stack_use_after_return=1:check_initialization_order=1:strict_init_order=1:strict_string_checks=1'

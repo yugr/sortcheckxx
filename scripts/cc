@@ -18,6 +18,13 @@ else
   type=c
 fi
 
+# Check that versions of clang and libclang match
+CLANG_VERSION=$(clang --version | sed -n -e 's/clang version \([0-9.]\+\).*/\1/p')
+LIBCLANG_VERSION=$(llvm-config --version)
+if test $CLANG_VERSION != $LIBCLANG_VERSION; then
+  echo >&2 "clang and libclang versions do not match: $CLANG_VERSION vs $LIBCLANG_VERSION"
+fi
+
 ROOT=$(dirname $0)/..
 
 # Why is libtooling interface so useless...
@@ -28,9 +35,7 @@ if test -n "$FILES" && ! (echo -- "$OPTS" | grep -q -- '-\([EM]\|MM\)\>'); then
   # Strip unhandled flags (-flto=jobserver causes clang to malfunction)
   OPTS=$(echo $OPTS | sed -e 's/-f\(lifetime-dse\|abi-version\|var-tracking\|lto\)[^ ]*//g')
   # Add std includes
-  # (do not include clang dirs because they are already included by SortChecker
-  # and conflicting directories from incompatible clang/libclang versions may cause strange errors)
-  INCLUDES=$(clang -x $type -E -Wp,-v /dev/null 2>&1 | grep -v clang | awk '/^ \//{ORS=" "; print "-I" $1}')
+  INCLUDES=$(clang -x $type -E -Wp,-v /dev/null 2>&1 | awk '/^ \//{ORS=" "; print "-I" $1}')
   # Disable all warnings
   WARNS='-fpermissive -w -Wno-everything -Wno-error'
   if ! $ROOT/bin/SortChecker $FILES -- $OPTS -I$ROOT/include $INCLUDES $WARNS; then
