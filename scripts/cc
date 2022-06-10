@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/python3
 
 # The MIT License (MIT)
 #▫
@@ -7,39 +7,121 @@
 # Use of this source code is governed by The MIT License (MIT)
 # that can be found in the LICENSE.txt file.
 
-set -eu
-#set -x
+import os.path
+import re
+import subprocess
+import sys
 
-if echo "$0" | grep -q ++; then
-  real_exe=g++
-  type=c++
-else
-  real_exe=gcc
-  type=c
-fi
+me = os.path.basename(__file__)
 
-# Check that versions of clang and libclang match
-CLANG_VERSION=$(clang --version | sed -n -e 's/clang version \([0-9.]\+\).*/\1/p')
-LIBCLANG_VERSION=$(llvm-config --version)
-if test $CLANG_VERSION != $LIBCLANG_VERSION; then
-  echo >&2 "clang and libclang versions do not match: $CLANG_VERSION vs $LIBCLANG_VERSION"
-fi
+def warn(msg):
+  "Print nicely-formatted warning message"
+  sys.stderr.write('%s: warning: %s\n' % (me, msg))
 
-ROOT=$(dirname $0)/..
+def error(msg):
+  "Print nicely-formatted error message and exit."
+  sys.stderr.write('%s: error: %s\n' % (me, msg))
+  sys.exit(1)
+
+def run(cmd, **kwargs):
+  "Simple wrapper for subprocess"
+  if 'fatal' in kwargs:
+    fatal = kwargs['fatal']
+    del kwargs['fatal']
+  else:
+    fatal = False
+  if 'tee' in kwargs:
+    tee = kwargs['tee']
+    del kwargs['tee']
+  else:
+    tee = False
+  if isinstance(cmd, str):
+    cmd = cmd.split(' ')
+#  print(cmd)
+  p = subprocess.run(cmd, stdin=None, stdout=subprocess.PIPE,
+                       stderr=subprocess.PIPE, **kwargs)
+  out = p.stdout.decode()
+  err = p.stderr.decode()
+  if fatal and p.returncode != 0:
+    error("'%s' failed:\n%s%s" % (' '.join(cmd), out, err))
+  if tee:
+    sys.stdout.write(out)
+    sys.stderr.write(err)
+  return p.returncode, out, err
+
+def check_versions():
+  "Check that versions of clang and libclang match"
+
+  _, out, _ = run("clang --version", fatal=True)
+  m = re.search('clang version ([0-9.]+)', out)
+  if m is None:
+    error("failed to get clang version")
+  clang_version = m[1]
+
+  _, libclang_version, _ = run("llvm-config --version", fatal=True)
+  libclang_version = libclang_version.strip()
+
+  if clang_version != libclang_version:
+    warn(f"clang and libclang versions do not match: {clang_version} vs {libclang_version}")
+
+def is_bad_flag(f):
+  "GCC-specific flags (-flto=jobserver causes clang to malfunction)"
+  return re.match(r'-f(lifetime-dse|abi-version|var-tracking|lto)', f)
+
+def get_std_includes(typ):
+  "Get paths to std headers from clang driver"
+  check_versions()
+  _, _, err = run(f"clang -x {typ} -E -Wp,-v /dev/null", fatal=True)
+  return [line.strip() for line in err.split('\n') if line.startswith(" /")]
+
+if "++" in me:
+  real_exe = "g++"
+  typ = "c++"
+else:
+  real_exe = "gcc"
+  typ = "c"
+
+root = os.path.join(os.path.dirname(__file__), '..')
 
 # Why is libtooling interface so useless...
-FILES=$(echo "$@" | grep -o '[^ ]\+\.\(cc\|cpp\|c\|cxx\|C\)\( \|$\)' || true)
-OPTS=$(echo "$@" | sed -e 's/[^ ]\+\.\(cc\|cpp\|c\|cxx\|C\)\( \|$\)//g')
+opts = []
+files = []
+instrument = True
+for arg in sys.argv[1:]:
+  _, ext = os.path.splitext(arg)
+  if ext in ('.cc', '.cpp', '.c', '.cxx', '.C'):
+    files.append(arg)
+    continue
 
-if test -n "$FILES" && ! (echo -- "$OPTS" | grep -q -- '-\([EM]\|MM\)\>'); then
-  # Strip unhandled flags (-flto=jobserver causes clang to malfunction)
-  OPTS=$(echo $OPTS | sed -e 's/-f\(lifetime-dse\|abi-version\|var-tracking\|lto\)[^ ]*//g')
-  # Add std includes
-  INCLUDES=$(clang -x $type -E -Wp,-v /dev/null 2>&1 | awk '/^ \//{ORS=" "; print "-I" $1}')
-  # Disable all warnings
-  WARNS='-fpermissive -w -Wno-everything -Wno-error'
-  if ! $ROOT/bin/SortChecker $FILES -- $OPTS -I$ROOT/include $INCLUDES $WARNS; then
-    echo "SortChecker: failed to compile $FILES"
-  fi
-fi
-/usr/bin/$real_exe "$@" -I$ROOT/include
+  if arg in ('-E', '-M', '-MM'):
+    instrument = True
+    break
+
+  if is_bad_flag(arg):
+    continue
+
+  opts.append(arg)
+
+if files and instrument:
+  # Run wrapper
+
+  hdr_path = os.path.join(root, 'include')
+  incs = [f"-I{inc}" for inc in get_std_includes(typ) + [hdr_path]]
+
+  rc, _, _ = run([os.path.join(root, 'bin/SortChecker')]
+    + files
+    + ["--"]
+    + opts
+    + incs
+    + ["-fpermissive", "-w", "-Wno-everything", "-Wno-error"],
+    tee=True)
+  if rc != 0:
+    sys.stderr.write(f"SortChecker: failed to compile {files}\n")
+
+  sys.argv.append(f"-I{hdr_path}")
+
+# Run real compiler
+
+args = [os.path.join("/usr/bin", real_exe)] + sys.argv[1:]
+rc, _, _ = run(args, tee=True)
+sys.exit(rc)
