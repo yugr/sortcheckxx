@@ -18,7 +18,8 @@ List of found issues:
 * [Libosmium: Missing prepare\_for\_lookup in test\_members\_database.cpp](https://github.com/osmcode/libosmium/issues/351) (fixed)
 * [ZeroC Ice: Unsorted array in lookupKwd](https://github.com/zeroc-ice/ice/issues/1362) (fixed)
 * [GiNaC: Potential issue in comparator in test\_antipode](https://www.ginac.de/pipermail/ginac-list/2022-June/002390.html) (fixed)
-* Irreflexive comparator in arrayfire (already [fixed](https://github.com/arrayfire/arrayfire/commit/77181f1d9c860144554cd61e4de69b9dd82ccad9) in latest)
+* ArrayFire: Irreflexive comparator (already [fixed](https://github.com/arrayfire/arrayfire/commit/77181f1d9c860144554cd61e4de69b9dd82ccad9) in latest)
+* Giac: Non-asymmetric comparator in polynome\_less (already [fixed](https://github.com/geogebra/giac/commit/efbde32d614aed9833903f93084f76bbf61cf418) in latest)
 
 # How to build
 
