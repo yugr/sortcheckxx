@@ -12,7 +12,7 @@ errors including [aborts](https://stackoverflow.com/questions/2441045/bewilderin
 
 SortChecker++ is an extension of [SortChecker](https://github.com/yugr/sortcheck) tool which does similar job to C sorting APIs.
 
-The tool has been tested on LLVM 6.0 (Ubuntu 18.04) and 10.0 (Ubuntu 20.04).
+The tool has been tested on LLVM 6.0 (Ubuntu 18.04), 10.0 (Ubuntu 20.04) and 14.0 (Ubuntu 22.04).
 
 List of found issues:
 * [Libosmium: Missing prepare\_for\_lookup in test\_members\_database.cpp](https://github.com/osmcode/libosmium/issues/351) (fixed)

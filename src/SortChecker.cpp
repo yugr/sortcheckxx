@@ -18,6 +18,11 @@
 #include "llvm/ADT/StringSwitch.h"
 #include "llvm/Support/raw_ostream.h"
 
+#include <optional>
+#include <set>
+#include <string>
+#include <memory>
+
 using namespace clang;
 using namespace clang::driver;
 using namespace clang::tooling;
@@ -356,7 +361,7 @@ public:
 } // namespace
 
 int main(int argc, const char **argv) {
-  CommonOptionsParser Op(argc, argv, Category);
-  ClangTool Tool(Op.getCompilations(), Op.getSourcePathList());
+  auto Op = CommonOptionsParser::create(argc, argv, Category, llvm::cl::OneOrMore);
+  ClangTool Tool(Op->getCompilations(), Op->getSourcePathList());
   return Tool.run(newFrontendActionFactory<InstrumentingAction>().get());
 }
