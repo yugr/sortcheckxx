@@ -1,0 +1,1 @@
+sortcheck: repro.cpp:35: non-transitive comparator at positions 1, 0 and 2
