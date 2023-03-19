@@ -33,6 +33,10 @@ using namespace clang::tooling;
 #define getEndLoc getLocEnd
 #endif
 
+#ifndef LLVM_NODISCARD
+#define LLVM_NODISCARD [[nodiscard]]
+#endif
+
 namespace {
 
 static llvm::cl::OptionCategory Category("SortChecker");
