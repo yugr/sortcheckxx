@@ -21,6 +21,11 @@ CXXFLAGS='-Wall -Wextra -Werror -g -std=c++20'
 
 export SORTCHECK_ABORT=0
 
+if ! g++ $CXXFLAGS -S -x c++ /dev/null 2>/dev/null; then
+  # C++20 is not supported
+  exit 0
+fi
+
 c++ repro.cpp $CXXFLAGS
 ./a.out > test.log 2>&1 || true
 if ! diff -q repro.ref test.log; then
