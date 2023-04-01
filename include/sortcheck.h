@@ -1,4 +1,4 @@
-// Copyright 2022 Yury Gribov
+// Copyright 2022-2023 Yury Gribov
 //
 // Use of this source code is governed by MIT license that can be
 // found in the LICENSE.txt file.
@@ -134,14 +134,14 @@ inline void check_range(_RandomAccessIterator __first,
       std::min(size_t(__last - __first), sizeof(cmp) / sizeof(cmp[0]));
   for (size_t i = 0; i < n; ++i) {
     for (size_t j = 0; j < n; ++j) {
-      cmp[i][j] = __comp(*(__first + i), *(__first + j)) ? SORTCHECK_GREATER
-                                                         : SORTCHECK_LESS;
+      cmp[i][j] = __comp(*(__first + i), *(__first + j)) ? SORTCHECK_LESS
+                                                         : SORTCHECK_GREATER;
     }
   }
 
   for (size_t i = 0; i < n; ++i) {
     for (size_t j = 0; j <= i; ++j) {
-      if (cmp[i][j] == SORTCHECK_LESS && cmp[j][i] == SORTCHECK_LESS)
+      if (cmp[i][j] == SORTCHECK_GREATER && cmp[j][i] == SORTCHECK_GREATER)
         cmp[i][j] = cmp[j][i] = SORTCHECK_EQUAL;
     }
   }
