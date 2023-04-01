@@ -2,12 +2,12 @@
 
 # The MIT License (MIT)
 # 
-# Copyright (c) 2022 Yury Gribov
+# Copyright (c) 2023 Yury Gribov
 # 
 # Use of this source code is governed by The MIT License (MIT)
 # that can be found in the LICENSE.txt file.
 
-# Check stable_sort instrumentation.
+# Check spaceship instrumentation.
 
 set -eu
 #set -x
@@ -17,7 +17,7 @@ cd $(dirname $0)
 ROOT=$PWD/../..
 PATH=$ROOT/scripts:$PATH
 
-CXXFLAGS='-Wall -Wextra -Werror -g'
+CXXFLAGS='-Wall -Wextra -Werror -g -std=c++20'
 
 export SORTCHECK_ABORT=0
 
