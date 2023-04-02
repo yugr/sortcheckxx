@@ -415,6 +415,7 @@ equal_range_checked_full(_ForwardIterator __first, _ForwardIterator __last,
 }
 
 // sort overloads
+// TODO: introduce random shuffling
 
 template <typename _RandomAccessIterator, typename _Compare>
 inline void sort_checked(_RandomAccessIterator __first,
@@ -432,6 +433,7 @@ inline void sort_checked(_RandomAccessIterator __first,
 }
 
 // stable_sort overloads
+// TODO: introduce random shuffling
 
 template <typename _RandomAccessIterator, typename _Compare>
 inline void stable_sort_checked(_RandomAccessIterator __first,
