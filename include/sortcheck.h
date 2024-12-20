@@ -1,4 +1,4 @@
-// Copyright 2022-2023 Yury Gribov
+// Copyright 2022-2024 Yury Gribov
 //
 // Use of this source code is governed by MIT license that can be
 // found in the LICENSE.txt file.
@@ -17,6 +17,9 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <limits.h>
+#include <stdlib.h>
+#include <string.h>
 
 // Alas, syslog.h defines very popular symbols like LOG_ERROR
 // so we can't include it
@@ -47,6 +50,7 @@ struct Options {
   int exit_code;
   int out;
   unsigned long checks;
+  unsigned shuffle;
 };
 
 // SORTCHECK_CHECKS bits
@@ -94,6 +98,16 @@ inline const Options &get_options() {
       opts.out = STDOUT_FILENO;
     }
 
+    if (const char *shuffle = getenv("SORTCHECK_SHUFFLE")) {
+      if (strcmp(shuffle, "rand") == 0 || strcmp(shuffle, "random") == 0) {
+        opts.shuffle = rand();
+      } else {
+        opts.shuffle = atoi(shuffle);
+      }
+    } else {
+      opts.shuffle = UINT_MAX;  // Disable
+    }
+
     opts_initialized = true;
   }
   return opts;
@@ -121,6 +135,18 @@ inline void report_error(const std::string &msg, const Options &opts) {
 
   if (opts.exit_code)
     exit(opts.exit_code);
+}
+
+template <typename _RandomAccessIterator>
+inline void shuffle(_RandomAccessIterator __first,
+                    _RandomAccessIterator __last) {
+  unsigned &seed = const_cast<unsigned &>(get_options().shuffle);  // FIXME
+  size_t n = __last - __first;
+  for (_RandomAccessIterator lhs = __first; lhs != __last; ++lhs) {
+    _RandomAccessIterator rhs = __first + seed % n;
+    seed = seed * 1664525u + 1013904223u;
+    std::swap(*lhs, *rhs);
+  }
 }
 
 template <typename _RandomAccessIterator, typename _Compare>
@@ -415,12 +441,14 @@ equal_range_checked_full(_ForwardIterator __first, _ForwardIterator __last,
 }
 
 // sort overloads
-// TODO: introduce random shuffling
 
 template <typename _RandomAccessIterator, typename _Compare>
 inline void sort_checked(_RandomAccessIterator __first,
                          _RandomAccessIterator __last, _Compare __comp,
                          const char *file, int line) {
+  const Options &opts = get_options();
+  if (opts.shuffle != UINT_MAX)
+    shuffle(__first, __last);
   check_range(__first, __last, __comp, file, line);
   std::sort(__first, __last, __comp);
 }
@@ -433,12 +461,14 @@ inline void sort_checked(_RandomAccessIterator __first,
 }
 
 // stable_sort overloads
-// TODO: introduce random shuffling
 
 template <typename _RandomAccessIterator, typename _Compare>
 inline void stable_sort_checked(_RandomAccessIterator __first,
                                 _RandomAccessIterator __last, _Compare __comp,
                                 const char *file, int line) {
+  const Options &opts = get_options();
+  if (opts.shuffle != UINT_MAX)
+    shuffle(__first, __last);
   check_range(__first, __last, __comp, file, line);
   std::stable_sort(__first, __last, __comp);
 }
@@ -498,6 +528,9 @@ template <typename Map> void check_map(Map *m, const char *file, int line) {
   std::vector<const typename Map::key_type *> keys;
   for (typename Map::iterator i = m->begin(), end = m->end(); i != end; ++i)
     keys.push_back(&i->first);
+  const Options &opts = get_options();
+  if (opts.shuffle != UINT_MAX)
+    shuffle(keys.begin(), keys.end());
   check_range(keys.begin(), keys.end(), ComparePointers<typename Map::key_compare>(m->key_comp()), file, line);
 }
 
@@ -505,6 +538,9 @@ template <typename Set> void check_set(Set *m, const char *file, int line) {
   std::vector<const typename Set::key_type *> keys;
   for (typename Set::iterator i = m->begin(), end = m->end(); i != end; ++i)
     keys.push_back(&*i);
+  const Options &opts = get_options();
+  if (opts.shuffle != UINT_MAX)
+    shuffle(keys.begin(), keys.end());
   check_range(keys.begin(), keys.end(), ComparePointers<typename Set::key_compare>(m->key_comp()), file, line);
 }
 

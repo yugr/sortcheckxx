@@ -39,10 +39,19 @@ You can run it manually via
 ```
 $ SortChecker file.cpp -- $CXXFLAGS
 ```
-and then compile via
+then compile via
 ```
 $ g++ file.cpp $CXXFLAGS -Ipath/to/sortcheck.h
 ```
+
+Finally run the resulting executable and it will report any errors e.g.
+```
+$ ./a.out
+sortcheck: file.cpp:23: non-asymmetric comparator at positions 1 and 0
+```
+(you'll probably want to combine this with some kind of regression
+or random/fuzz testing to achieve good coverage,
+also see the `SORTCHECK_SHUFFLE` option below).
 
 You could also use compiler wrappers in `scripts/` folder to combine instrumentation and compilation:
 ```
@@ -57,6 +66,9 @@ Instrumented program may be controlled with environment variables:
 * `SORTCHECK_OUTPUT=path/to/logfile` - write detected errors to file instead of stdout
 * `SORTCHECK_CHECKS=mask` - set which checks are enabled via bitmask
   (e.g. `mask=0xfffe` would disable the generally uninteresting irreflexivity checks)
+* `SORTCHECK_SHUFFLE=val` - reshuffle containers before checking with given seed;
+  a value of `rand` will use random seed
+  (helps to find bugs which are not located at start of array)
 
 # Interpreting the error messages
 
