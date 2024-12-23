@@ -8,7 +8,11 @@ SortChecker++ verifies that comparators in C++ APIs like `std::sort` or `std::bi
 satisfy the [Strict Weak Ordering](https://medium.com/@shiansu/strict-weak-ordering-and-the-c-stl-f7dcfa4d4e07)
 axioms.
 Violation of these axioms is undefined behavior and may lead to all sorts of runtime
-errors including [aborts](https://stackoverflow.com/questions/2441045/bewildering-segfault-involving-stl-sort-algorithm) (also [here](https://stackoverflow.com/questions/46670734/erratic-behavior-of-gccs-stdsort-with-lambdas), see [this answer](https://stackoverflow.com/a/24048654/2170527) for explanations).
+errors including [aborts](https://stackoverflow.com/questions/2441045/bewildering-segfault-involving-stl-sort-algorithm)
+(also [here](https://stackoverflow.com/questions/46670734/erratic-behavior-of-gccs-stdsort-with-lambdas),
+see [this answer](https://stackoverflow.com/a/24048654/2170527),
+[Qualys analysis](https://www.openwall.com/lists/oss-security/2024/01/30/7) and
+[my slides](https://github.com/yugr/CppRussia/blob/master/2023/EN.pdf) for explanations).
 
 SortChecker++ is an extension of [SortChecker](https://github.com/yugr/sortcheck) tool which does similar job to C sorting APIs.
 
