@@ -466,7 +466,6 @@ template <typename _RandomAccessIterator, typename _Compare>
 inline void stable_sort_checked(_RandomAccessIterator __first,
                                 _RandomAccessIterator __last, _Compare __comp,
                                 const char *file, int line) {
-  const Options &opts = get_options();
   check_range(__first, __last, __comp, file, line);
   std::stable_sort(__first, __last, __comp);
 }
