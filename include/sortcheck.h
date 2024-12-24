@@ -467,8 +467,6 @@ inline void stable_sort_checked(_RandomAccessIterator __first,
                                 _RandomAccessIterator __last, _Compare __comp,
                                 const char *file, int line) {
   const Options &opts = get_options();
-  if (opts.shuffle != UINT_MAX)
-    shuffle(__first, __last);
   check_range(__first, __last, __comp, file, line);
   std::stable_sort(__first, __last, __comp);
 }
