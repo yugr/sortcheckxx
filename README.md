@@ -25,6 +25,8 @@ List of found issues:
 * ArrayFire: Irreflexive comparator (already [fixed](https://github.com/arrayfire/arrayfire/commit/77181f1d9c860144554cd61e4de69b9dd82ccad9) in latest)
 * Giac: Non-asymmetric comparator in polynome\_less (already [fixed](https://github.com/geogebra/giac/commit/efbde32d614aed9833903f93084f76bbf61cf418) in latest)
 
+Note that some (but not all!) errors found by Sortchecker++ can also be found via [`-D_LIBCPP_DEBUG_STRICT_WEAK_ORDERING_CHECK`](https://reviews.llvm.org/D150264).
+
 # How to build
 
 To use, first install dependencies:
