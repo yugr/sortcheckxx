@@ -1,1 +1,1 @@
-sortcheck: map:39: irreflexive comparator at position 0
+sortcheck: map:39: reflexive comparator at position 0

@@ -1,1 +1,1 @@
-sortcheck: repro.cpp:23: irreflexive comparator at position 12
+sortcheck: repro.cpp:23: reflexive comparator at position 12

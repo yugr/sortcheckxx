@@ -177,7 +177,7 @@ inline void check_range(_RandomAccessIterator __first,
       if (cmp[i][i] != SORTCHECK_EQUAL) {
         std::ostringstream os;
         os << "sortcheck: " << file << ':' << line << ": "
-           << "irreflexive comparator at position " << i;
+           << "reflexive comparator at position " << i;
         report_error(os.str(), opts);
       }
     }

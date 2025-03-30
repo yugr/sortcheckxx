@@ -24,7 +24,7 @@ export SORTCHECK_ABORT=0
 c++ repro.cpp $CXXFLAGS
 
 ./a.out > test.log 2>&1 || true
-if grep 'irreflexive comparator' test.log; then
+if grep 'reflexive comparator' test.log; then
   echo >&2 'Reference reported unexpected error'
   cat test.log >&2
   exit 1

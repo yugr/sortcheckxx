@@ -1,1 +1,1 @@
-sortcheck: set:35: irreflexive comparator at position 0
+sortcheck: set:35: reflexive comparator at position 0

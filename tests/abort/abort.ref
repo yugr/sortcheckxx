@@ -1,2 +1,2 @@
-sortcheck: abort.cpp:21: irreflexive comparator at position 0
+sortcheck: abort.cpp:21: reflexive comparator at position 0
 Aborted (core dumped)
